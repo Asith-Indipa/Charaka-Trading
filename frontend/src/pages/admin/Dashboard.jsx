@@ -91,7 +91,7 @@ export default function Dashboard() {
                     </CardHeader>
                     <CardContent>
                         <div className={`text-2xl font-bold ${isProfitable ? 'text-emerald-600' : 'text-red-600'}`}>
-                            {formatCurrency(statsData.avgProfit || 0)}
+                            {formatCurrency(statsData.totalProfit || 0)}
                         </div>
                         <p className="text-xs text-muted-foreground">
                             {isProfitable ? '+' : ''}{profitPercentage}% avg margin

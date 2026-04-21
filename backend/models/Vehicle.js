@@ -69,10 +69,10 @@ const vehicleSchema = new mongoose.Schema({
         trim: true
     },
     bikeType: {
-        enum: ['sport', 'cruiser', 'scooter', 'commuter'],
+        enum: ['sport', 'cruiser', 'scooter', 'commuter','none'],
         type: String,
         trim: true,
-        default: 'commuter'
+        default: 'none'
     },
 
     // Pricing
