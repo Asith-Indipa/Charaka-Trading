@@ -12,7 +12,6 @@ import { PERMISSIONS } from '@/utils/roles';
 
 export default function Dashboard() {
     const { can } = useAuth();
-    // Fetch stats
     const { data: statsData, isLoading, error } = useQuery({
         queryKey: ['adminStats'],
         queryFn: async () => {
@@ -30,7 +29,7 @@ export default function Dashboard() {
     }
 
     const {
-        totalRevenue, // This is Net Sales
+        totalRevenue,
         grossSales,
         totalDiscounts,
         purchaseRevenue,
