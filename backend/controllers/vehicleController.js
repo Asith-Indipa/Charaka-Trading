@@ -143,7 +143,7 @@ const addNewVehicle = async (req, res) => {
             seatingCapacity,
             type,
             engineCapacity,
-            bikeType,
+            bikeType: bikeType || 'none',
             status: 'available',
             listedBy: req.user._id,
             purchaseCost: purchaseCost || 0,

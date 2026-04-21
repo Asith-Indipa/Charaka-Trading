@@ -33,8 +33,8 @@ const validateNewVehicle = [
     body('type').optional().isIn(['car', 'three-wheel', 'motorbike'])
         .withMessage('Invalid vehicle type'),
     body('engineCapacity').optional().trim(),
-    body('bikeType').optional().isIn(['sport', 'cruiser', 'scooter', 'commuter'])
-        .withMessage('Invalid bike type'),
+    //body('bikeType').optional().isIn(['sport', 'cruiser', 'scooter', 'commuter'])
+    //    .withMessage('Invalid bike type'),
     handleValidationErrors
 ];
 

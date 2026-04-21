@@ -159,7 +159,7 @@ const createTransaction = async (req, res) => {
             });
 
             // Update vehicle status
-            vehicle.status = 'sold';
+            vehicle.status = 'archived';
             vehicle.soldAt = new Date();
             await vehicle.save();
 
@@ -251,12 +251,26 @@ const getTransaction = async (req, res) => {
 const updateTransaction = async (req, res) => {
     try {
         const transaction = await Transaction.findById(req.params.id);
+        const vehicle = await Vehicle.findById(transaction.vehicleSnapshot.vehicleId);
 
         if (!transaction) {
             return res.status(404).json({
                 success: false,
                 message: 'Transaction not found'
             });
+        }
+
+        if (!vehicle) {
+            return res.status(404).json({
+                success: false,
+                message: 'Vehicle not found'
+            });
+        }
+
+        if (transaction.type === 'sale') {
+            vehicle.status = 'sold';
+            vehicle.listedAt = new Date();
+            await vehicle.save();
         }
 
         // Fields that can be updated
