@@ -29,6 +29,14 @@ const StoreInfoSchema = new mongoose.Schema({
     logo: {
         type: String,
         default: ''
+    },
+    bankDetails: {
+        type: String,
+        default: ''
+    },
+    defaultBookingPercentage: {
+        type: Number,
+        default: 10
     }
 }, { timestamps: true });
 
