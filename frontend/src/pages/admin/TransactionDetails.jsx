@@ -1,3 +1,7 @@
+// This component displays detailed information about a specific transaction, including buyer/seller details, vehicle snapshot, financial summary, and allows admin to update transaction status or print the details.
+//this page you can see when click Dashboard > View Transactions > Details
+
+
 import { useParams, useNavigate } from 'react-router-dom';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import api from '@/api/axios';

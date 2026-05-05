@@ -1,3 +1,6 @@
+// This is the main dashboard page for the admin panel. It provides an overview of key metrics and quick access to important sections.
+//this page you can see when click Dashboard
+
 import { useQuery } from '@tanstack/react-query';
 import { Link } from 'react-router-dom';
 import axios from '@/api/axios';

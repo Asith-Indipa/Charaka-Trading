@@ -1,3 +1,6 @@
+// This component displays an access denied message with options to navigate back, return home, or contact support. It also includes a reference ID for support purposes and a security alert icon for emphasis.
+
+
 import { useNavigate } from 'react-router-dom';
 import { Button } from "@/components/ui/button";
 import { ShieldAlert, ArrowLeft, Home, MessageSquare } from "lucide-react";

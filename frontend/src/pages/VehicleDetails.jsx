@@ -1,3 +1,5 @@
+//Home page vehicle details shown when click on a vehicle from the listing page
+
 import { useParams, useNavigate } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import api from '@/api/axios';

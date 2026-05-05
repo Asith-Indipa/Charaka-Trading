@@ -1,3 +1,9 @@
+// This component allows admin users to create a new transaction, either a sale or a purchase. It includes:
+// - A tabbed interface to switch between "Sell Vehicle" and "Buy Vehicle" modes.
+// - Common fields for both modes (e.g., sale price, discount, payment method, notes).
+// - Specific fields for each mode (e.g., vehicle ID for sale, buyer information for purchase).
+// this page you can see when click Dashboard > New Transaction
+
 
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';

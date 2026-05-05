@@ -1,3 +1,4 @@
+//this is the register page
 
 import { useState } from 'react';
 import { useForm } from 'react-hook-form';

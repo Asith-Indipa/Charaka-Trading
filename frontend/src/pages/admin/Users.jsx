@@ -1,3 +1,6 @@
+// This component provides an interface for managing users in the admin dashboard. It allows administrators to view a list of users, search and filter them, and perform actions such as creating new users, activating/deactivating accounts, changing roles, and deleting users. The component uses React Query for data fetching and mutations, React Hook Form for form handling, and various UI components for a consistent design. Permissions are checked to ensure that only authorized users can perform certain actions.you can go path is Dashboard > Users
+
+
 import { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useForm } from 'react-hook-form';

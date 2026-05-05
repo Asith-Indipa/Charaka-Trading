@@ -1,3 +1,6 @@
+// This component allows admin users to add new vehicles to the inventory. It includes a form for vehicle details, image uploads, and a button to create the vehicle.
+// this page you can see when click Dashboard > Manage Vehicles > Add
+
 
 import { useState } from 'react';
 import { useForm, useFieldArray } from 'react-hook-form';
