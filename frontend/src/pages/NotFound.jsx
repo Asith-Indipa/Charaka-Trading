@@ -1,3 +1,6 @@
+// This is the 404 Not Found page component for the Vehicle Management System.
+
+
 import { useNavigate } from 'react-router-dom';
 import { Button } from "@/components/ui/button";
 import { Search, Map, Home, Compass } from "lucide-react";

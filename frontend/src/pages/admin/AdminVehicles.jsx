@@ -1,3 +1,7 @@
+// This page allows admins to manage all vehicles in the system, including viewing, editing, and archiving.
+//this page you can see when click Dashboard > Manage Vehicles in the admin panel. It provides a comprehensive overview of all vehicles, with search and filter capabilities to quickly find specific listings. Admins can view key details at a glance, and take actions such as editing or archiving vehicles based on their permissions. The page is designed to streamline vehicle management for administrators, making it easy to keep the inventory organized and up-to-date.
+
+
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import axios from '@/api/axios';
 import {

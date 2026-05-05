@@ -1,3 +1,7 @@
+// This component displays detailed information about a specific vehicle in the admin panel.
+//this page you can see when click Dashboard > Manage Vehicles > Details
+// It includes sections for the vehicle's images, description, specifications, pricing, and administrative metadata. Admins can also edit or archive the vehicle from this page if they have the appropriate permissions.
+
 import { useParams, useNavigate, Link } from 'react-router-dom';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import api from '@/api/axios';

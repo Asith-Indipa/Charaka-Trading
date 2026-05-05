@@ -1,3 +1,6 @@
+// This is the main settings page that contains tabs for different settings sections like account, store, permissions, appearance, and notifications. Each tab will render a different component or form based on the user's permissions.
+
+
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"

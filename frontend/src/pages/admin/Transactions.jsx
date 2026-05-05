@@ -1,3 +1,6 @@
+// This page lists all transactions with search and filter capabilities. Admins can view details of each transaction and create new ones if they have the appropriate permissions.you can see this page as the "Transactions Dashboard" for admins, providing an overview of all transactions in the system. It includes a search bar to quickly find transactions by ID or buyer name, and dropdown filters to narrow down transactions by type (sale or purchase) and status (pending, completed, cancelled). Each transaction is displayed in a table with key details and a link to view more information. Admins with the right permissions can also create new transactions from this page.
+//this is the transaction listing page
+
 import { useQuery } from '@tanstack/react-query';
 import { Link } from 'react-router-dom';
 import api from '@/api/axios';

@@ -1,3 +1,7 @@
+// This component provides a dynamic interface for managing role-based permissions in the system.
+//this page you can see when click Dashboard -> Settings -> Permissions. It allows administrators to view and modify which permissions are assigned to each role in the system. The permissions are displayed in a table format, grouped by feature area (e.g., Vehicles, Transactions, Users). Admins can toggle checkboxes to grant or revoke specific permissions for each role, with changes taking effect immediately on the next API request. The "admin" role has locked permissions to prevent accidental lockout, while other roles can be customized as needed. A security guideline card at the bottom provides important information about how permission changes affect user access.
+
+
 import { useState, useEffect } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import axios from '@/api/axios';

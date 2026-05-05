@@ -1,3 +1,4 @@
+// This component renders the login form and handles user authentication.
 
 import { useState } from 'react';
 import { useForm } from 'react-hook-form';

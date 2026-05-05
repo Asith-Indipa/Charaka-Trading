@@ -1,3 +1,7 @@
+// This component allows admin users to edit existing vehicle details. It fetches the current data for the vehicle, pre-fills the form, and allows updates to all fields including images. It also includes auto-calculation of price based on purchase cost and profit margin, as well as discount handling. Validation ensures required fields are filled before submission.
+// this page you can see when click Dashboard > Manage Vehicles > Edit on a specific vehicle
+
+
 import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';

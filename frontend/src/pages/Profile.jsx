@@ -1,3 +1,5 @@
+// This page allows users to view and update their profile information such as first name, last name, and phone number.
+
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
