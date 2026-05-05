@@ -1,6 +1,3 @@
-// This is the main settings page that contains tabs for different settings sections like account, store, permissions, appearance, and notifications. Each tab will render a different component or form based on the user's permissions.
-
-
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
@@ -56,8 +53,8 @@ export default function Settings() {
                         </CardHeader>
                         <CardContent className="space-y-2">
                             <div className="space-y-1">
-                                <Label htmlFor="name">Name</Label>
-                                <Input id="name" defaultValue={user?.username} />
+                                <Label htmlFor="name">Email</Label>
+                                <Input id="name" defaultValue={user?.email} disabled />
                             </div>
                             <div className="space-y-1">
                                 <Label htmlFor="email">Email</Label>

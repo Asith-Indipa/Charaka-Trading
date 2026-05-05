@@ -12,6 +12,24 @@ const handleValidationErrors = (req, res, next) => {
     next();
 };
 
+const validateBrandNewVehicle = [
+    body('brand').trim().notEmpty().withMessage('Brand is required'),
+    body('model').trim().notEmpty().withMessage('Model is required'),
+    body('year').isInt({ min: 1900, max: new Date().getFullYear() + 1 })
+        .withMessage('Valid year is required'),
+    body('price').isFloat({ min: 0 }).withMessage('Valid price is required'),
+    body('condition').isIn(['new'])
+        .withMessage('Valid condition is required'),
+    body('type').optional().isIn(['car', 'three-wheel', 'motorbike'])
+        .withMessage('Invalid vehicle type'),
+    body('engineCapacity').optional({ checkFalsy: true }).trim(),
+    body('bikeType').optional({ checkFalsy: true }).isIn(['sport', 'cruiser', 'scooter', 'commuter'])
+        .withMessage('Invalid bike type'),
+    body('bodyType').optional({ checkFalsy: true }).isIn(['sedan', 'hatchback', 'coupe', 'convertible', 'wagon', 'suv', 'van', 'pickup', 'none'])
+        .withMessage('Invalid body type'),
+    handleValidationErrors
+];
+
 // Validation rules for new vehicle
 const validateNewVehicle = [
     body('vehicleNumber').trim().notEmpty().withMessage('Vehicle number is required'),
@@ -32,9 +50,11 @@ const validateNewVehicle = [
         .withMessage('Discounted price must be a positive number'),
     body('type').optional().isIn(['car', 'three-wheel', 'motorbike'])
         .withMessage('Invalid vehicle type'),
-    body('engineCapacity').optional().trim(),
-    //body('bikeType').optional().isIn(['sport', 'cruiser', 'scooter', 'commuter'])
-    //    .withMessage('Invalid bike type'),
+    body('engineCapacity').optional({ checkFalsy: true }).trim(),
+    body('bikeType').optional({ checkFalsy: true }).isIn(['sport', 'cruiser', 'scooter', 'commuter'])
+        .withMessage('Invalid bike type'),
+    body('bodyType').optional({ checkFalsy: true }).isIn(['sedan', 'hatchback', 'coupe', 'convertible', 'wagon', 'suv', 'van', 'pickup', 'none'])
+        .withMessage('Invalid body type'),
     handleValidationErrors
 ];
 
@@ -107,5 +127,6 @@ module.exports = {
     validateRelistVehicle,
     validateFromTransaction,
     validateTransaction,
-    handleValidationErrors
+    handleValidationErrors,
+    validateBrandNewVehicle
 };

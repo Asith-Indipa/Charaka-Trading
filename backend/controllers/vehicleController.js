@@ -1,4 +1,5 @@
 const Vehicle = require('../models/Vehicle');
+const NewVehicle = require('../models/NewVehicle');
 const Transaction = require('../models/Transaction');
 
 // @desc    Get all vehicles (with filters)
@@ -14,25 +15,59 @@ const getVehicles = async (req, res) => {
         if (status && status !== 'all') {
             filter.status = status;
         } else if (!status) {
-            filter.status = 'available';
+            // For public listing, show both available and booked by default
+            filter.status = { $in: ['available', 'booked'] };
         }
 
         if (brand) filter.brand = new RegExp(brand, 'i');
-        if (condition) filter.condition = condition;
+        
+        // Price filter
         if (minPrice || maxPrice) {
             filter.price = {};
             if (minPrice) filter.price.$gte = parseFloat(minPrice);
             if (maxPrice) filter.price.$lte = parseFloat(maxPrice);
         }
 
-        const vehicles = await Vehicle.find(filter)
+        // Fetch from both collections
+        const usedQuery = Vehicle.find({ ...filter, ...(condition ? { condition } : {}) })
             .populate('listedBy', 'username email')
             .sort({ createdAt: -1 });
+        
+        const newQuery = NewVehicle.find({ ...filter }).sort({ createdAt: -1 }).populate('listedBy', 'username email');
+
+        let [usedVehicles, newVehicles] = await Promise.all([
+            usedQuery,
+            newQuery
+        ]);
+
+        // Transform NewVehicles to match the expected format for listing
+        const formattedNewVehicles = newVehicles.map(v => {
+            const obj = v.toObject();
+            return {
+                ...obj,
+                isBrandNew: true,
+                condition: 'new' // Force condition to 'new' for branding
+            };
+        });
+
+        // Merge all vehicles
+        let allVehicles = [...usedVehicles, ...formattedNewVehicles];
+
+        // Apply condition filter to the merged list if it was specifically requested
+        // (Note: usedQuery already handled condition for UsedVehicles)
+        if (condition === 'new') {
+            allVehicles = formattedNewVehicles;
+        } else if (condition === 'used') {
+            allVehicles = usedVehicles;
+        }
+
+        // Sort by creation date
+        allVehicles.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
 
         res.status(200).json({
             success: true,
-            count: vehicles.length,
-            data: vehicles
+            count: allVehicles.length,
+            data: allVehicles
         });
     } catch (error) {
         console.error('Get vehicles error:', error);
@@ -49,20 +84,36 @@ const getVehicles = async (req, res) => {
 // @access  Public
 const getVehicle = async (req, res) => {
     try {
-        const vehicle = await Vehicle.findById(req.params.id)
+        // Try Used Vehicles first
+        let vehicle = await Vehicle.findById(req.params.id)
             .populate('listedBy', 'username email')
             .populate('originalVehicleId');
 
-        if (!vehicle) {
-            return res.status(404).json({
-                success: false,
-                message: 'Vehicle not found'
+        if (vehicle) {
+            return res.status(200).json({
+                success: true,
+                data: vehicle
             });
         }
 
-        res.status(200).json({
-            success: true,
-            data: vehicle
+        // Try Brand New Vehicles
+        vehicle = await NewVehicle.findById(req.params.id)
+            .populate('listedBy', 'username email');
+
+        if (vehicle) {
+            return res.status(200).json({
+                success: true,
+                data: {
+                    ...vehicle.toObject(),
+                    isBrandNew: true,
+                    condition: 'new'
+                }
+            });
+        }
+
+        return res.status(404).json({
+            success: false,
+            message: 'Vehicle not found'
         });
     } catch (error) {
         console.error('Get vehicle error:', error);
@@ -108,11 +159,29 @@ const addNewVehicle = async (req, res) => {
         } = req.body;
 
         // Check if vehicle with same chassis number already exists
-        const existingVehicle = await Vehicle.findOne({ chassisNumber });
-        if (existingVehicle) {
+        const existingChassisNumber = await Vehicle.findOne({ chassisNumber });
+        if (existingChassisNumber) {
             return res.status(400).json({
                 success: false,
-                message: 'Vehicle with this chassis number already exists'
+                message: `${chassisNumber} - Chassis Number already exists`
+            });
+        }
+
+        //Check if vehicle with same vehicle number already exists
+        const existingVehicleNumber = await Vehicle.findOne({ vehicleNumber });
+        if (existingVehicleNumber) {
+            return res.status(400).json({
+                success: false,
+                message: `${vehicleNumber} - Vehicle Number already exists`
+            });
+        }
+
+        //Check if vehicle with same engine number already exists
+        const existingEngineNumber = await Vehicle.findOne({ engineNumber });
+        if (existingEngineNumber) {
+            return res.status(400).json({
+                success: false,
+                message: `${engineNumber} - Engine Number already exists`
             });
         }
 
@@ -134,7 +203,7 @@ const addNewVehicle = async (req, res) => {
             mileage,
             condition,
             price,
-            originalPrice: price,
+            originalPrice: purchaseCost || 0,
             description,
             images,
             fuelType,
@@ -143,7 +212,7 @@ const addNewVehicle = async (req, res) => {
             seatingCapacity,
             type,
             engineCapacity,
-            bikeType: bikeType || 'none',
+            bikeType: bikeType || undefined,
             status: 'available',
             listedBy: req.user._id,
             purchaseCost: purchaseCost || 0,
@@ -153,6 +222,71 @@ const addNewVehicle = async (req, res) => {
             discountType: discountType || 'none',
             discountValue: (discountType === 'none' || !discountType) ? 0 : (discountValue || 0),
             discountedPrice: (discountType === 'none' || !discountType) ? price : (discountedPrice || price)
+        });
+
+        res.status(201).json({
+            success: true,
+            message: 'Vehicle added successfully',
+            data: vehicle
+        });
+    } catch (error) {
+        console.error('Add vehicle error:', error);
+        res.status(500).json({
+            success: false,
+            message: 'Error adding vehicle',
+            error: error.message
+        });
+    }
+};
+
+
+//Add Brandnew Vehicles
+const addNewBrandVehicle = async (req, res) => {
+    try {
+        const {
+            brand,
+            model,
+            year,
+            color,
+            mileage,
+            condition,
+            price,
+            description,
+            fuelType,
+            transmission,
+            bodyType,
+            seatingCapacity,
+            type,
+            engineCapacity,
+            bikeType
+        } = req.body;
+
+        // Handle uploaded images
+        let images = [];
+        if (req.files && req.files.length > 0) {
+            images = req.files.map(file => `/uploads/vehicles/${file.filename}`);
+        }
+
+        // Create vehicle
+        const vehicle = await NewVehicle.create({
+            brand,
+            model,
+            year,
+            color,
+            mileage: mileage || 0,
+            condition: 'new',
+            price,
+            description,
+            images,
+            fuelType,
+            transmission,
+            bodyType,
+            seatingCapacity,
+            type,
+            engineCapacity,
+            bikeType: bikeType || undefined,
+            status: 'available',
+            listedBy: req.user._id
         });
 
         res.status(201).json({
@@ -243,7 +377,7 @@ const relistVehicle = async (req, res) => {
             seatingCapacity: originalVehicle.seatingCapacity,
             type: type || originalVehicle.type || 'car',
             engineCapacity: engineCapacity || originalVehicle.engineCapacity,
-            bikeType: bikeType || originalVehicle.bikeType,
+            bikeType: bikeType || originalVehicle.bikeType || undefined,
             status: 'available',
             originalVehicleId: originalVehicle._id,
             relistCount: (originalVehicle.relistCount || 0) + 1,
@@ -343,7 +477,7 @@ const addFromTransaction = async (req, res) => {
             listedBy: req.user._id,
             type: type || transaction.vehicleSnapshot.type || 'car',
             engineCapacity: engineCapacity || transaction.vehicleSnapshot.engineCapacity,
-            bikeType: bikeType || transaction.vehicleSnapshot.bikeType,
+            bikeType: bikeType || transaction.vehicleSnapshot.bikeType || undefined,
             purchaseCost: transaction.vehicleSnapshot.purchaseCost || 0,
             profitMarginType: transaction.vehicleSnapshot.profitMarginType || 'percentage',
             profitMarginValue: transaction.vehicleSnapshot.profitMarginValue || 0,
@@ -373,7 +507,14 @@ const addFromTransaction = async (req, res) => {
 // @access  Private (Admin/Moderator)
 const updateVehicle = async (req, res) => {
     try {
-        const vehicle = await Vehicle.findById(req.params.id);
+        // Find which model has this ID
+        let vehicle = await Vehicle.findById(req.params.id);
+        let modelType = 'used';
+
+        if (!vehicle) {
+            vehicle = await NewVehicle.findById(req.params.id);
+            modelType = 'new';
+        }
 
         if (!vehicle) {
             return res.status(404).json({
@@ -382,8 +523,8 @@ const updateVehicle = async (req, res) => {
             });
         }
 
-        // Fields that can be updated
-        const allowedUpdates = [
+        // Fields that can be updated for Used Vehicles
+        const usedFields = [
             'brand', 'model', 'year', 'vehicleNumber', 'chassisNumber', 'engineNumber',
             'price', 'description', 'color', 'mileage', 'condition',
             'fuelType', 'transmission', 'bodyType', 'seatingCapacity',
@@ -392,14 +533,24 @@ const updateVehicle = async (req, res) => {
             'discountType', 'discountValue', 'discountedPrice'
         ];
 
+        // Fields that can be updated for Brand New Vehicles
+        const newFields = [
+            'brand', 'model', 'year', 'price', 'description', 'color', 
+            'fuelType', 'transmission', 'bodyType', 'seatingCapacity',
+            'type', 'engineCapacity', 'bikeType', 'status'
+        ];
+
+        const allowedUpdates = modelType === 'new' ? newFields : usedFields;
+
         allowedUpdates.forEach(field => {
             if (req.body[field] !== undefined) {
-                vehicle[field] = req.body[field];
+                // Coerce empty string to undefined for enum fields so they stay unset
+                vehicle[field] = req.body[field] === '' ? undefined : req.body[field];
             }
         });
 
-        // Ensure discount consistency
-        if (vehicle.discountType === 'none') {
+        // Ensure discount consistency (only for used vehicles)
+        if (modelType === 'used' && vehicle.discountType === 'none') {
             vehicle.discountValue = 0;
             vehicle.discountedPrice = vehicle.price;
         }
@@ -437,7 +588,11 @@ const updateVehicle = async (req, res) => {
 // @access  Private (Admin/Moderator)
 const archiveVehicle = async (req, res) => {
     try {
-        const vehicle = await Vehicle.findById(req.params.id);
+        let vehicle = await Vehicle.findById(req.params.id);
+
+        if (!vehicle) {
+            vehicle = await NewVehicle.findById(req.params.id);
+        }
 
         if (!vehicle) {
             return res.status(404).json({
@@ -472,5 +627,6 @@ module.exports = {
     relistVehicle,
     addFromTransaction,
     updateVehicle,
-    archiveVehicle
+    archiveVehicle,
+    addNewBrandVehicle
 };

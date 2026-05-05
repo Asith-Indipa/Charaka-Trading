@@ -1,9 +1,11 @@
 // This component allows admin users to edit existing vehicle details. It fetches the current data for the vehicle, pre-fills the form, and allows updates to all fields including images. It also includes auto-calculation of price based on purchase cost and profit margin, as well as discount handling. Validation ensures required fields are filled before submission.
-// this page you can see when click Dashboard > Manage Vehicles > Edit on a specific vehicle
+// This page you can see when click Dashboard > Manage Vehicles > Edit on a specific vehicle
+
 
 
 import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
+import { handleError } from '@/lib/errorHandler';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import api from '@/api/axios';
 import { Button } from "@/components/ui/button";
@@ -17,10 +19,14 @@ import {
     SelectValue,
 } from "@/components/ui/select";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Loader2, Upload, X, ArrowLeft } from 'lucide-react';
+import { Upload, X, ArrowLeft } from 'lucide-react';
+import { Loader, PageLoader } from "@/components/common/Loader";
 import { toast } from "sonner";
 import { Separator } from '@/components/ui/separator';
+import VehicleSearchDropdown from '@/components/common/VehicleSearchDropdown';
 import { Checkbox } from "@/components/ui/checkbox";
+import { Badge } from "@/components/ui/badge";
+import { getImageUrl } from '@/lib/image';
 
 export default function EditVehicle() {
     const { id } = useParams();
@@ -29,6 +35,8 @@ export default function EditVehicle() {
     const [images, setImages] = useState([]);
     const [existingImages, setExistingImages] = useState([]);
     const [errors, setErrors] = useState({});
+
+    // Initialize form state with default values for all vehicle details and pricing fields
 
     const [formData, setFormData] = useState({
         brand: '',
@@ -56,8 +64,11 @@ export default function EditVehicle() {
         calculatedProfit: 0,
         discountType: 'none',
         discountValue: '',
-        discountedPrice: ''
+        discountedPrice: '',
+        bookingPercentage: ''
     });
+
+    // Fetch single vehicle details by ID from API, only when ID is available
 
     const { data: vehicleResponse, isLoading: isLoadingVehicle } = useQuery({
         queryKey: ['vehicle', id],
@@ -67,6 +78,9 @@ export default function EditVehicle() {
         },
         enabled: !!id
     });
+
+    // Fill form with fetched vehicle data and block editing if the vehicle is sold
+    // Load vehicle data into form for editing, set defaults, and prevent editing if vehicle is sold
 
     useEffect(() => {
         if (vehicleResponse?.data) {
@@ -81,7 +95,7 @@ export default function EditVehicle() {
                 chassisNumber: v.chassisNumber || '',
                 engineNumber: v.engineNumber || '',
                 color: v.color || '',
-                mileage: v.mileage || '',
+                mileage: v.mileage || (v.condition === 'new' ? 0 : ''),
                 fuelType: v.fuelType ? v.fuelType.toLowerCase() : 'none',
                 transmission: v.transmission ? v.transmission.toLowerCase() : 'none',
                 bodyType: v.bodyType ? v.bodyType.toLowerCase() : 'none',
@@ -97,8 +111,10 @@ export default function EditVehicle() {
                 profitMarginValue: v.profitMarginValue || '',
                 calculatedProfit: v.calculatedProfit || 0,
                 discountType: v.discountType?.toLowerCase() || 'none',
-                discountValue: v.discountValue || 0,
-                discountedPrice: v.discountedPrice || v.price || ''
+                discountValue: v.discountValue || '',
+                discountedPrice: v.discountedPrice || '',
+                bookingPercentage: v.bookingPercentage || '',
+                isBrandNew: v.isBrandNew || false
             });
             setExistingImages(v.images || []);
 
@@ -110,6 +126,7 @@ export default function EditVehicle() {
         }
     }, [vehicleResponse, navigate]);
 
+    // Update form data on input change and automatically calculate price, discount, and profit when related values change
     const handleInputChange = (e) => {
         const { name, value } = e.target;
         setFormData(prev => {
@@ -117,7 +134,7 @@ export default function EditVehicle() {
 
             // Auto-calculate price and discount if purchase cost, profit margin, or discount changes
             if (['purchaseCost', 'profitMarginValue', 'discountValue'].includes(name)) {
-                const cost = parseFloat(name === 'purchaseCost' ? value : prev.purchaseCost) || 0;
+                const cost = parseFloat(name === 'purchaseCost' ? value : prev.purchaseCost) || 0;    //purchase cost, profit margin, discount value numbers විදිහට convert කරනවා
                 const marginValue = parseFloat(name === 'profitMarginValue' ? value : prev.profitMarginValue) || 0;
                 const dValue = parseFloat(name === 'discountValue' ? value : prev.discountValue) || 0;
 
@@ -157,47 +174,61 @@ export default function EditVehicle() {
         });
     };
 
+    // Update form data on select change, handle special cases (new vehicle, status),
+    // and recalculate price, discount, and profit for used vehicles
+
+
     const handleSelectChange = (name, value) => {
         setFormData(prev => {
             const newData = { ...prev, [name]: value };
+
+            // Handle Condition Switch (Brand New specific logic)
+            if (name === 'condition' && value === 'new') {
+                newData.mileage = 0;
+            }
+
             // If status is changed to anything other than available, uncheck addForListing
-            if (name === 'status' && value !== 'available') {
+            //status එක available/booked නෙවෙයි නම් listing option එක off කරනවා
+            if (name === 'status' && (value !== 'available' && value !== 'booked')) {
                 newData.addForListing = false;
             }
 
-            // Recalculate price if profit margin type or discount type changes
-            if (name === 'profitMarginType' || name === 'discountType') {
-                const cost = parseFloat(prev.purchaseCost) || 0;
-                const marginValue = parseFloat(prev.profitMarginValue) || 0;
-                const dValue = parseFloat(prev.discountValue) || 0;
+            // Price auto-calculation (ONLY for Used Vehicles)
+            if (prev.condition !== 'new') {
+                // Recalculate price if profit margin type or discount type changes
+                if (name === 'profitMarginType' || name === 'discountType') {
+                    const cost = parseFloat(prev.purchaseCost) || 0;
+                    const marginValue = parseFloat(prev.profitMarginValue) || 0;
+                    const dValue = parseFloat(prev.discountValue) || 0;
 
-                let calculatedPrice = 0;
-                if (cost > 0 && marginValue > 0) {
-                    if ((name === 'profitMarginType' ? value : prev.profitMarginType) === 'percentage') {
-                        calculatedPrice = Math.round(cost + (cost * marginValue / 100));
-                    } else {
-                        calculatedPrice = Math.round(cost + marginValue);
+                    let calculatedPrice = 0;
+                    if (cost > 0 && marginValue > 0) {
+                        if ((name === 'profitMarginType' ? value : prev.profitMarginType) === 'percentage') {
+                            calculatedPrice = Math.round(cost + (cost * marginValue / 100));
+                        } else {
+                            calculatedPrice = Math.round(cost + marginValue);
+                        }
                     }
+
+                    newData.price = calculatedPrice;
+
+                    // Calculate discounted price
+                    let dPrice = calculatedPrice;
+                    const activeDiscountType = (name === 'discountType' ? value : prev.discountType);
+                    if (activeDiscountType === 'percentage') {
+                        dPrice = Math.round(calculatedPrice - (calculatedPrice * dValue / 100));
+                    } else if (activeDiscountType === 'fixed') {
+                        dPrice = Math.round(calculatedPrice - dValue);
+                    } else {
+                        // none
+                        dPrice = calculatedPrice;
+                        newData.discountValue = 0;
+                    }
+
+                    newData.discountedPrice = dPrice;
+                    // Update profit based on discounted price
+                    newData.calculatedProfit = dPrice - cost;
                 }
-
-                newData.price = calculatedPrice;
-
-                // Calculate discounted price
-                let dPrice = calculatedPrice;
-                const activeDiscountType = (name === 'discountType' ? value : prev.discountType);
-                if (activeDiscountType === 'percentage') {
-                    dPrice = Math.round(calculatedPrice - (calculatedPrice * dValue / 100));
-                } else if (activeDiscountType === 'fixed') {
-                    dPrice = Math.round(calculatedPrice - dValue);
-                } else {
-                    // none
-                    dPrice = calculatedPrice;
-                    newData.discountValue = 0;
-                }
-
-                newData.discountedPrice = dPrice;
-                // Update profit based on discounted price
-                newData.calculatedProfit = dPrice - cost;
             }
 
             return newData;
@@ -215,12 +246,15 @@ export default function EditVehicle() {
         });
     };
 
+    // Add newly selected image files to existing images array when user uploads files
     const handleImageChange = (e) => {
         if (e.target.files) {
             const newImages = Array.from(e.target.files);
             setImages(prev => [...prev, ...newImages]);
         }
     };
+
+    //new images remove කරනවා, existing images delete feature එක disabled බව message එකක් දෙනවා
 
     const removeNewImage = (index) => {
         setImages(prev => prev.filter((_, i) => i !== index));
@@ -230,13 +264,19 @@ export default function EditVehicle() {
         toast.info("Image deletion is currently disabled in this version.");
     };
 
+
+    //A validation function that checks whether the required fields are filled in before submitting the form.
+
     const validate = () => {
         const newErrors = {};
-        const requiredFields = [
-            'brand', 'model', 'year', 'price',
-            'vehicleNumber', 'chassisNumber', 'engineNumber'
-        ];
+        const requiredFields = ['brand', 'model', 'year', 'price'];
 
+        // Add additional tracking requirements ONLY if NOT a brand new vehicle
+        if (formData.condition !== 'new') {
+            requiredFields.push('vehicleNumber', 'chassisNumber', 'engineNumber');
+        }
+
+        //All required fields are checked If empty, an error is marked.
         requiredFields.forEach(field => {
             if (!formData[field] || formData[field].toString().trim() === '') {
                 newErrors[field] = true;
@@ -247,19 +287,41 @@ export default function EditVehicle() {
         return Object.keys(newErrors).length === 0;
     };
 
+
+    // Prepare form data and images, remove unnecessary fields, and send vehicle update request to backend
+
     const updateVehicleMutation = useMutation({
         mutationFn: async () => {
+
+            //Preparing to send form data + images to the backend
             const formDataToSend = new FormData();
 
-            // Append all text fields
+            // Append essential text fields
             Object.keys(formData).forEach(key => {
-                formDataToSend.append(key, formData[key]);
+                // Filter out non-schema fields for New Vehicles
+                if (formData.condition === 'new') {
+                    const excludedForNew = [
+                        'vehicleNumber', 'chassisNumber', 'engineNumber',
+                        'purchaseCost', 'profitMarginType', 'profitMarginValue',
+                        'calculatedProfit', 'discountType', 'discountValue', 'discountedPrice'
+                    ];
+                    if (excludedForNew.includes(key)) return;
+                }
+
+                // Skip 'addForListing' field (status handles it) and append only valid (non-empty) form values to FormData
+
+                if (key === 'addForListing') return; // Handled by status
+                if (formData[key] !== undefined && formData[key] !== null) {
+                    formDataToSend.append(key, formData[key]);
+                }
             });
 
             // Append new images
             images.forEach(image => {
                 formDataToSend.append('images', image);
             });
+
+            //The request to update the vehicle is sent to the backend.
 
             const response = await api.patch(`/vehicles/${id}`, formDataToSend, {
                 headers: {
@@ -275,11 +337,11 @@ export default function EditVehicle() {
             navigate('/admin/vehicles');
         },
         onError: (error) => {
-            toast.error(error.response?.data?.message || "Failed to update vehicle");
-            console.error(error);
+            toast.error(handleError(error));
         }
     });
 
+    // Prevent page reload, validate form fields, and submit update request if valid; otherwise show error message
     const handleSubmit = (e) => {
         e.preventDefault();
         if (validate()) {
@@ -289,10 +351,12 @@ export default function EditVehicle() {
         }
     };
 
-    if (isLoadingVehicle || !vehicleResponse?.data) {
-        return <div className="p-8 flex justify-center"><Loader2 className="animate-spin h-8 w-8" /></div>;
-    }
+    // if (isLoadingVehicle || !vehicleResponse?.data) {
+    // if (isLoading) return <PageLoader text="Loading vehicle details..." />;
+    // }
 
+
+    // Edit Vehicle page UI: allows updating vehicle details, pricing, images, and technical info, then submitting changes to backend
     return (
         <div className="container mx-auto py-10 px-4 md:px-8 max-w-5xl">
             <div className="flex items-center justify-between mb-8">
@@ -312,7 +376,7 @@ export default function EditVehicle() {
                         Cancel
                     </Button>
                     <Button onClick={handleSubmit} disabled={updateVehicleMutation.isPending}>
-                        {updateVehicleMutation.isPending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                        {updateVehicleMutation.isPending && <Loader size="sm" className="mr-2" />}
                         Save Changes
                     </Button>
                 </div>
@@ -326,66 +390,54 @@ export default function EditVehicle() {
                             <CardTitle>Vehicle Details</CardTitle>
                         </CardHeader>
                         <CardContent className="space-y-4">
-                            <div className="grid grid-cols-2 gap-4">
-                                <div className="space-y-2">
-                                    <label className="text-sm font-medium leading-none">Brand *</label>
-                                    <Input
-                                        name="brand"
-                                        value={formData.brand}
-                                        onChange={(e) => {
-                                            handleInputChange(e);
-                                            if (errors.brand) setErrors(prev => ({ ...prev, brand: false }));
-                                        }}
-                                        className={errors.brand ? "border-red-500 focus-visible:ring-red-500" : ""}
-                                        required
-                                    />
-                                </div>
-                                <div className="space-y-2">
-                                    <label className="text-sm font-medium leading-none">Model *</label>
-                                    <Input
-                                        name="model"
-                                        value={formData.model}
-                                        onChange={(e) => {
-                                            handleInputChange(e);
-                                            if (errors.model) setErrors(prev => ({ ...prev, model: false }));
-                                        }}
-                                        className={errors.model ? "border-red-500 focus-visible:ring-red-500" : ""}
-                                        required
-                                    />
-                                </div>
+                            <VehicleSearchDropdown
+                                value={{
+                                    type: formData.type,
+                                    brand: formData.brand,
+                                    model: formData.model,
+                                    year: formData.year,
+                                }}
+                                onChange={(val) => {
+                                    setFormData(prev => ({
+                                        ...prev,
+                                        type: val.type,
+                                        brand: val.brand,
+                                        model: val.model,
+                                        year: val.year,
+                                    }));
+                                    // Clear validation errors when values change
+                                    if (errors.brand) setErrors(prev => ({ ...prev, brand: false }));
+                                    if (errors.model) setErrors(prev => ({ ...prev, model: false }));
+                                    if (errors.year) setErrors(prev => ({ ...prev, year: false }));
+                                }}
+                            />
+
+                            {/* Price input field that is editable only for new vehicles, shows validation error styling, and displays info when price is auto-calculated for used vehicles */}
+
+                            <div className="space-y-2">
+                                <label className="text-sm font-medium leading-none">Price (LKR) *</label>
+                                <Input
+                                    type="number"
+                                    disabled={formData.condition !== 'new'}
+                                    name="price"
+                                    value={formData.price}
+                                    onChange={(e) => {
+                                        handleInputChange(e);
+                                        if (errors.price) setErrors(prev => ({ ...prev, price: false }));
+                                    }}
+                                    className={`${errors.price ? "border-red-500 focus-visible:ring-red-500" : ""} ${formData.condition !== 'new' ? 'bg-muted/50 cursor-not-allowed opacity-80' : ''}`}
+                                    placeholder="0"
+                                    required
+                                />
+                                {formData.condition !== 'new' && (
+                                    <p className="text-[10px] text-muted-foreground italic">
+                                        Selling price is auto-calculated below via profit margin.
+                                    </p>
+                                )}
                             </div>
 
-                            <div className="grid grid-cols-2 gap-4">
-                                <div className="space-y-2">
-                                    <label className="text-sm font-medium leading-none">Year *</label>
-                                    <Input
-                                        type="number"
-                                        name="year"
-                                        value={formData.year}
-                                        onChange={(e) => {
-                                            handleInputChange(e);
-                                            if (errors.year) setErrors(prev => ({ ...prev, year: false }));
-                                        }}
-                                        className={errors.year ? "border-red-500 focus-visible:ring-red-500" : ""}
-                                        required
-                                    />
-                                </div>
-                                <div className="space-y-2">
-                                    <label className="text-sm font-medium leading-none">Price (LKR) *</label>
-                                    <Input
-                                        type="number"
-                                        disabled
-                                        name="price"
-                                        value={formData.price}
-                                        onChange={(e) => {
-                                            handleInputChange(e);
-                                            if (errors.price) setErrors(prev => ({ ...prev, price: false }));
-                                        }}
-                                        className={errors.price ? "border-red-500 focus-visible:ring-red-500" : ""}
-                                        required
-                                    />
-                                </div>
-                            </div>
+
+                            {/* Shows vehicle condition (fixed as used and not editable) and allows admin to change vehicle status (available, booked, sold, archived) */}
 
                             <div className="grid grid-cols-2 gap-4">
                                 <div className="space-y-2">
@@ -394,12 +446,12 @@ export default function EditVehicle() {
                                         value={formData.condition}
                                         onValueChange={(val) => handleSelectChange('condition', val)}
                                         key={`condition-${formData.condition}`}
+                                        disabled
                                     >
                                         <SelectTrigger>
                                             <SelectValue placeholder="Select condition" />
                                         </SelectTrigger>
                                         <SelectContent>
-                                            <SelectItem value="new">New</SelectItem>
                                             <SelectItem value="used">Used</SelectItem>
                                         </SelectContent>
                                     </Select>
@@ -416,6 +468,7 @@ export default function EditVehicle() {
                                         </SelectTrigger>
                                         <SelectContent>
                                             <SelectItem value="available">Available</SelectItem>
+                                            <SelectItem value="booked">Booked</SelectItem>
                                             <SelectItem value="sold">Sold</SelectItem>
                                             <SelectItem value="archived">Archived</SelectItem>
                                         </SelectContent>
@@ -423,26 +476,26 @@ export default function EditVehicle() {
                                 </div>
                             </div>
 
-                            <div className="grid grid-cols-2 gap-4">
-                                <div className="flex items-center space-x-3 space-y-0 rounded-md border p-4 bg-muted/50">
-                                    <Checkbox
-                                        id="addForListing"
-                                        checked={formData.addForListing}
-                                        onCheckedChange={(val) => handleCheckboxChange('addForListing', val)}
-                                    />
-                                    <div className="grid gap-1.5 leading-none">
-                                        <label
-                                            htmlFor="addForListing"
-                                            className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70 cursor-pointer"
-                                        >
-                                            Add to Public Listing
-                                        </label>
-                                        <p className="text-xs text-muted-foreground">
-                                            Checking this will set the status to "Available" and show the vehicle in the store.
-                                        </p>
-                                    </div>
+                            {/* <div className="grid grid-cols-2 gap-4">
+                            <div className="flex items-center space-x-3 space-y-0 rounded-md border p-4 bg-muted/50">
+                                <Checkbox
+                                    id="addForListing"
+                                    checked={formData.addForListing}
+                                    onCheckedChange={(val) => handleCheckboxChange('addForListing', val)}
+                                />
+                                <div className="grid gap-1.5 leading-none">
+                                    <label
+                                        htmlFor="addForListing"
+                                        className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70 cursor-pointer"
+                                    >
+                                        Add to Public Listing
+                                    </label>
+                                    <p className="text-xs text-muted-foreground">
+                                        Checking this will set the status to "Available" and show the vehicle in the store.
+                                    </p>
                                 </div>
                             </div>
+                        </div> */}
                         </CardContent>
                     </Card>
 
@@ -452,77 +505,96 @@ export default function EditVehicle() {
                             <CardTitle>Technical Specs</CardTitle>
                         </CardHeader>
                         <CardContent className="space-y-4">
-                            <div className="space-y-2">
-                                <label className="text-sm font-medium leading-none">Vehicle Type *</label>
-                                <div className="flex gap-2">
-                                    {['car', 'three-wheel', 'motorbike'].map((type) => (
-                                        <Button
-                                            key={type}
-                                            type="button"
-                                            variant={formData.type === type ? 'default' : 'outline'}
-                                            size="sm"
-                                            className="capitalize flex-1"
-                                            onClick={() => handleSelectChange('type', type)}
-                                        >
-                                            {type.replace('-', ' ')}
-                                        </Button>
-                                    ))}
-                                </div>
-                            </div>
 
-                            <div className="space-y-2">
-                                <label className="text-sm font-medium leading-none">Stock ID / Vehicle No. *</label>
-                                <Input
-                                    name="vehicleNumber"
-                                    value={formData.vehicleNumber}
-                                    onChange={(e) => {
-                                        handleInputChange(e);
-                                        if (errors.vehicleNumber) setErrors(prev => ({ ...prev, vehicleNumber: false }));
-                                    }}
-                                    className={errors.vehicleNumber ? "border-red-500 focus-visible:ring-red-500" : ""}
-                                    required
-                                />
-                            </div>
 
-                            <div className="grid grid-cols-2 gap-4">
-                                <div className="space-y-2">
-                                    <label className="text-sm font-medium leading-none">Chassis Number *</label>
-                                    <Input
-                                        name="chassisNumber"
-                                        value={formData.chassisNumber}
-                                        onChange={(e) => {
-                                            handleInputChange(e);
-                                            if (errors.chassisNumber) setErrors(prev => ({ ...prev, chassisNumber: false }));
-                                        }}
-                                        className={errors.chassisNumber ? "border-red-500 focus-visible:ring-red-500" : ""}
-                                        required
-                                    />
+                            {/* This section shows only for USED vehicles (not brand new vehicles) */}
+                            {/* It collects important identification details like Stock ID, Chassis Number, and Engine Number */}
+                            {/* If the user enters invalid data, error styles are removed automatically when typing */}
+
+                            {formData.condition !== 'new' ? (
+                                <div className="space-y-4 animate-in fade-in slide-in-from-top-2 duration-300">
+                                    <div className="space-y-2">
+                                        <label className="text-sm font-medium leading-none">Stock ID / Vehicle No. *</label>
+                                        <Input
+                                            name="vehicleNumber"
+                                            value={formData.vehicleNumber}
+                                            onChange={(e) => {
+                                                handleInputChange(e);
+                                                if (errors.vehicleNumber) setErrors(prev => ({ ...prev, vehicleNumber: false }));
+                                            }}
+                                            className={errors.vehicleNumber ? "border-red-500 focus-visible:ring-red-500" : ""}
+                                            placeholder="Stock or Plate ID"
+                                            required
+                                        />
+                                    </div>
+
+                                    <div className="grid grid-cols-2 gap-4">
+                                        <div className="space-y-2">
+                                            <label className="text-sm font-medium leading-none">Chassis Number *</label>
+                                            <Input
+                                                name="chassisNumber"
+                                                value={formData.chassisNumber}
+                                                onChange={(e) => {
+                                                    handleInputChange(e);
+                                                    if (errors.chassisNumber) setErrors(prev => ({ ...prev, chassisNumber: false }));
+                                                }}
+                                                className={errors.chassisNumber ? "border-red-500 focus-visible:ring-red-500" : ""}
+                                                required
+                                            />
+                                        </div>
+                                        <div className="space-y-2">
+                                            <label className="text-sm font-medium leading-none">Engine Number *</label>
+                                            <Input
+                                                name="engineNumber"
+                                                value={formData.engineNumber}
+                                                onChange={(e) => {
+                                                    handleInputChange(e);
+                                                    if (errors.engineNumber) setErrors(prev => ({ ...prev, engineNumber: false }));
+                                                }}
+                                                className={errors.engineNumber ? "border-red-500 focus-visible:ring-red-500" : ""}
+                                                required
+                                            />
+                                        </div>
+                                    </div>
                                 </div>
-                                <div className="space-y-2">
-                                    <label className="text-sm font-medium leading-none">Engine Number *</label>
-                                    <Input
-                                        name="engineNumber"
-                                        value={formData.engineNumber}
-                                        onChange={(e) => {
-                                            handleInputChange(e);
-                                            if (errors.engineNumber) setErrors(prev => ({ ...prev, engineNumber: false }));
-                                        }}
-                                        className={errors.engineNumber ? "border-red-500 focus-visible:ring-red-500" : ""}
-                                        required
-                                    />
+                            ) : (
+                                // Shows an info message for brand new vehicles explaining that tracking details are not required and mileage is set to 0 km
+
+                                <div className="p-4 rounded-md bg-blue-50 border border-blue-100 flex items-start gap-3 mt-2 mb-4 animate-in zoom-in-95 duration-500">
+                                    <div className="h-6 w-6 rounded-full bg-blue-100 flex items-center justify-center text-blue-600 flex-shrink-0">
+                                        <span className="text-xs font-bold font-serif italic text-blue-700">i</span>
+                                    </div>
+                                    <div className="space-y-1">
+                                        <p className="text-xs font-semibold text-blue-800">Brand New Flow Active</p>
+                                        <p className="text-[10px] text-blue-600/80 leading-relaxed">
+                                            Tracing numbers (Stock ID, Chassis, Engine) are not required for brand new stock entries.
+                                            Mileage is pinned to 0 km.
+                                        </p>
+                                    </div>
                                 </div>
-                            </div>
+                            )}
+
+                            {/* Inputs for vehicle mileage and color; mileage is disabled when the vehicle is brand new and automatically handled */}
 
                             <div className="grid grid-cols-2 gap-4">
                                 <div className="space-y-2">
                                     <label className="text-sm font-medium leading-none">Mileage (km)</label>
-                                    <Input type="number" name="mileage" value={formData.mileage} onChange={handleInputChange} />
+                                    <Input
+                                        type="number"
+                                        name="mileage"
+                                        value={formData.mileage}
+                                        onChange={handleInputChange}
+                                        disabled={formData.condition === 'new'}
+                                        className={formData.condition === 'new' ? 'bg-muted/50 cursor-not-allowed opacity-80' : ''}
+                                    />
                                 </div>
                                 <div className="space-y-2">
                                     <label className="text-sm font-medium leading-none">Color</label>
                                     <Input name="color" value={formData.color} onChange={handleInputChange} />
                                 </div>
                             </div>
+
+                            {/* This section allows selecting vehicle transmission type and fuel type from predefined options */}
 
                             <div className="grid grid-cols-2 gap-4">
                                 <div className="space-y-2">
@@ -598,6 +670,8 @@ export default function EditVehicle() {
                                 </div>
                             )}
 
+                            {/* Shows engine capacity input only for three-wheel and motorbike vehicle types */}
+
                             {(formData.type === 'three-wheel' || formData.type === 'motorbike') && (
                                 <div className="space-y-2 animate-in fade-in slide-in-from-top-2 duration-300">
                                     <label className="text-sm font-medium leading-none">Engine Capacity (cc)</label>
@@ -605,6 +679,7 @@ export default function EditVehicle() {
                                 </div>
                             )}
 
+                            {/* Shows bike type dropdown only for motorbike vehicle type */}
                             {formData.type === 'motorbike' && (
                                 <div className="space-y-2 animate-in fade-in slide-in-from-top-2 duration-300">
                                     <label className="text-sm font-medium leading-none">Bike Type</label>
@@ -630,144 +705,194 @@ export default function EditVehicle() {
                 </div>
 
                 {/* Financial Information */}
-                <Card>
-                    <CardHeader>
-                        <CardTitle>Financial Information</CardTitle>
+                <Card className={formData.condition === 'new' ? 'border-blue-100 bg-blue-50/5' : ''}>
+                    <CardHeader className="flex flex-row items-center justify-between space-y-0">
+                        <CardTitle>{formData.condition === 'new' ? 'Sale Pricing' : 'Financial Information'}</CardTitle>
+                        {formData.condition === 'new' && (
+                            <Badge variant="secondary" className="bg-blue-100 text-blue-700 hover:bg-blue-100 border-none">
+                                Simplified Entry
+                            </Badge>
+                        )}
                     </CardHeader>
                     <CardContent className="space-y-6">
-                        <div className="space-y-4 grid grid-cols-1 md:grid-cols-2 gap-4">
-                            <div className="space-y-4">
+                        {formData.condition === 'new' ? (
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 animate-in fade-in zoom-in-95 duration-500">
                                 <div className="space-y-2">
-                                    <label className="text-sm font-medium leading-none">Purchase Cost (LKR)</label>
-                                    <Input
-                                        type="number"
-                                        name="purchaseCost"
-                                        value={formData.purchaseCost}
-                                        onChange={handleInputChange}
-                                        placeholder="Amount paid to acquire this vehicle"
-                                    />
+                                    <label className="text-sm font-medium leading-none">Standard Selling Price (LKR) *</label>
+                                    <div className="relative">
+                                        <span className="absolute left-3 top-2.5 text-muted-foreground text-sm font-semibold">LKR</span>
+                                        <Input
+                                            type="number"
+                                            name="price"
+                                            value={formData.price}
+                                            onChange={handleInputChange}
+                                            placeholder="0"
+                                            className="pl-12 text-lg font-bold"
+                                            required
+                                        />
+                                    </div>
                                     <p className="text-xs text-muted-foreground">
-                                        Enter the original cost you paid for this vehicle
+                                        Enter the final retail price for this brand new vehicle.
                                     </p>
                                 </div>
-
-                                <div className="space-y-2">
-                                    <label className="text-sm font-medium leading-none">Profit Calculation Method</label>
-                                    <Select
-                                        value={formData.profitMarginType}
-                                        onValueChange={(val) => handleSelectChange('profitMarginType', val)}
-                                        key={`profitMarginType-${formData.profitMarginType}`}
-                                    >
-                                        <SelectTrigger>
-                                            <SelectValue placeholder="Select method" />
-                                        </SelectTrigger>
-                                        <SelectContent>
-                                            <SelectItem value="percentage">Percentage</SelectItem>
-                                            <SelectItem value="fixed">Fixed Amount</SelectItem>
-                                        </SelectContent>
-                                    </Select>
+                                <div className="p-4 rounded-lg bg-white border border-blue-100 flex flex-col justify-center">
+                                    <label className="text-[10px] uppercase tracking-widest text-muted-foreground font-bold mb-1">Final Inventory Listing</label>
+                                    <p className="text-2xl font-black text-blue-600">
+                                        LKR {Number(formData.price || 0).toLocaleString()}
+                                    </p>
                                 </div>
+                            </div>
+                        ) : (
 
-                                <div className="space-y-2">
-                                    <label className="text-sm font-medium leading-none">
-                                        {formData.profitMarginType === 'percentage' ? 'Profit Margin (%)' : 'Profit Amount (LKR)'}
-                                    </label>
-                                    <Input
-                                        type="number"
-                                        name="profitMarginValue"
-                                        value={formData.profitMarginValue}
-                                        onChange={handleInputChange}
-                                        placeholder={formData.profitMarginType === 'percentage' ? 'e.g., 15 for 15%' : 'Fixed profit amount'}
-                                    />
-                                </div>
-
-                                <div className="grid grid-cols-2 gap-4">
+                            // Handles vehicle financial details like purchase cost, profit margin, discounts, and booking percentage, and also shows a live calculated pricing summary (price, profit, discount, and margin) based on entered values
+                            <div className="space-y-4 grid grid-cols-1 md:grid-cols-2 gap-4">
+                                <div className="space-y-4">
                                     <div className="space-y-2">
-                                        <label className="text-sm font-medium leading-none">Discount Type</label>
+                                        <label className="text-sm font-medium leading-none">Purchase Cost (LKR)</label>
+                                        <Input
+                                            type="number"
+                                            name="purchaseCost"
+                                            value={formData.purchaseCost}
+                                            onChange={handleInputChange}
+                                            placeholder="Amount paid to acquire this vehicle"
+                                        />
+                                    </div>
+
+                                    <div className="space-y-2">
+                                        <label className="text-sm font-medium leading-none">Profit Calculation Method</label>
                                         <Select
-                                            value={formData.discountType}
-                                            onValueChange={(val) => handleSelectChange('discountType', val)}
-                                            key={`discountType-${formData.discountType}`}
+                                            value={formData.profitMarginType}
+                                            onValueChange={(val) => handleSelectChange('profitMarginType', val)}
+                                            key={`profitMarginType-${formData.profitMarginType}`}
                                         >
                                             <SelectTrigger>
-                                                <SelectValue placeholder="Discount Type" />
+                                                <SelectValue placeholder="Select method" />
                                             </SelectTrigger>
                                             <SelectContent>
-                                                <SelectItem value="none">None</SelectItem>
-                                                <SelectItem value="fixed">Fixed Amount</SelectItem>
                                                 <SelectItem value="percentage">Percentage</SelectItem>
+                                                <SelectItem value="fixed">Fixed Amount</SelectItem>
                                             </SelectContent>
                                         </Select>
                                     </div>
+
                                     <div className="space-y-2">
                                         <label className="text-sm font-medium leading-none">
-                                            {formData.discountType === 'percentage' ? 'Discount (%)' : 'Discount (LKR)'}
+                                            {formData.profitMarginType === 'percentage' ? 'Profit Margin (%)' : 'Profit Amount (LKR)'}
                                         </label>
                                         <Input
                                             type="number"
-                                            name="discountValue"
-                                            value={formData.discountValue}
+                                            name="profitMarginValue"
+                                            value={formData.profitMarginValue}
                                             onChange={handleInputChange}
-                                            placeholder="0"
-                                            disabled={formData.discountType === 'none'}
+                                            placeholder={formData.profitMarginType === 'percentage' ? 'e.g., 15 for 15%' : 'Fixed profit amount'}
                                         />
                                     </div>
-                                </div>
-                            </div>
 
-                            {formData.purchaseCost && formData.profitMarginValue && (
-                                <div className="rounded-lg border bg-muted/50 p-4 space-y-2">
-                                    <p className="text-sm font-medium">Calculated Pricing</p>
-                                    <Separator />
-                                    <div className="grid grid-cols-2 gap-x-8 gap-y-4 text-sm mt-2">
-                                        <div className="space-y-1">
-                                            <p className="text-muted-foreground text-xs uppercase font-semibold">Base Selling Price</p>
-                                            <p className="font-semibold text-base opacity-90">LKR {Number(formData.price || 0).toLocaleString()}</p>
+                                    <div className="grid grid-cols-2 gap-4">
+                                        <div className="space-y-2">
+                                            <label className="text-sm font-medium leading-none">Discount Type</label>
+                                            <Select
+                                                value={formData.discountType}
+                                                onValueChange={(val) => handleSelectChange('discountType', val)}
+                                                key={`discountType-${formData.discountType}`}
+                                            >
+                                                <SelectTrigger>
+                                                    <SelectValue placeholder="Discount Type" />
+                                                </SelectTrigger>
+                                                <SelectContent>
+                                                    <SelectItem value="none">None</SelectItem>
+                                                    <SelectItem value="fixed">Fixed Amount</SelectItem>
+                                                    <SelectItem value="percentage">Percentage</SelectItem>
+                                                </SelectContent>
+                                            </Select>
                                         </div>
-                                        <div className="space-y-1">
-                                            <p className="text-muted-foreground text-xs uppercase font-semibold">Final Price</p>
-                                            <p className="font-bold text-xl text-blue-600">LKR {Number(formData.discountedPrice || formData.price || 0).toLocaleString()}</p>
+                                        <div className="space-y-2">
+                                            <label className="text-sm font-medium leading-none">
+                                                {formData.discountType === 'percentage' ? 'Discount (%)' : 'Discount (LKR)'}
+                                            </label>
+                                            <Input
+                                                type="number"
+                                                name="discountValue"
+                                                value={formData.discountValue}
+                                                onChange={handleInputChange}
+                                                placeholder="0"
+                                                disabled={formData.discountType === 'none'}
+                                            />
                                         </div>
-                                        <div className="space-y-1">
-                                            <p className="text-muted-foreground text-xs uppercase font-semibold">Estimated Profit</p>
-                                            <p className="font-semibold text-lg text-emerald-600">LKR {Number(formData.calculatedProfit || 0).toLocaleString()}</p>
-                                        </div>
-                                        <div className="space-y-1">
-                                            <p className="text-muted-foreground text-xs uppercase font-semibold">Profit Margin</p>
-                                            <p className="font-semibold text-base">
-                                                {formData.profitMarginType === 'percentage'
-                                                    ? `${formData.profitMarginValue}%`
-                                                    : `LKR ${Number(formData.profitMarginValue || 0).toLocaleString()} (${Number(formData.purchaseCost) > 0 ? ((Number(formData.calculatedProfit) / Number(formData.purchaseCost)) * 100).toFixed(2) : 0}%)`
-                                                }
-                                            </p>
-                                        </div>
+                                    </div>
 
-                                        {formData.discountType !== 'none' && formData.discountValue > 0 && (
-                                            <>
-                                                <div className="space-y-1">
-                                                    <p className="text-muted-foreground text-xs uppercase font-semibold">Total Discount</p>
-                                                    <p className="font-semibold text-lg text-orange-600">
-                                                        LKR {(Number(formData.price || 0) - Number(formData.discountedPrice || formData.price || 0)).toLocaleString()}
-                                                    </p>
-                                                </div>
-                                                <div className="space-y-1">
-                                                    <p className="text-muted-foreground text-xs uppercase font-semibold">Applied Discount</p>
-                                                    <p className="font-semibold text-lg text-foreground">
-                                                        {formData.discountType === 'percentage'
-                                                            ? `${formData.discountValue}% OFF`
-                                                            : `LKR ${Number(formData.discountValue || 0).toLocaleString()} (${Number(formData.price) > 0 ? ((Number(formData.discountValue) / Number(formData.price)) * 100).toFixed(2) : 0}%)`
-                                                        }
-                                                    </p>
-                                                </div>
-                                            </>
-                                        )}
+                                    <div className="space-y-2">
+                                        <label className="text-sm font-medium leading-none">Custom Booking Percentage (%)</label>
+                                        <Input
+                                            type="number"
+                                            name="bookingPercentage"
+                                            value={formData.bookingPercentage}
+                                            onChange={handleInputChange}
+                                            placeholder="Leave empty to use store default"
+                                            min="0"
+                                            max="100"
+                                        />
+                                        <p className="text-[10px] text-muted-foreground italic">
+                                            If left empty, the store's global default will be used.
+                                        </p>
                                     </div>
                                 </div>
-                            )}
-                        </div>
+
+                                {formData.purchaseCost && formData.profitMarginValue && (
+                                    <div className="rounded-lg border bg-muted/50 p-4 space-y-2 h-fit">
+                                        <p className="text-sm font-medium">Calculated Pricing Summary</p>
+                                        <Separator />
+                                        <div className="grid grid-cols-2 gap-x-8 gap-y-4 text-sm mt-2">
+                                            <div className="space-y-1">
+                                                <p className="text-muted-foreground text-xs uppercase font-semibold">Base Price</p>
+                                                <p className="font-semibold text-base opacity-90">LKR {Number(formData.price || 0).toLocaleString()}</p>
+                                            </div>
+                                            <div className="space-y-1">
+                                                <p className="text-muted-foreground text-xs uppercase font-semibold">Final Price</p>
+                                                <p className="font-bold text-xl text-blue-600">LKR {Number(formData.discountedPrice || formData.price || 0).toLocaleString()}</p>
+                                            </div>
+                                            <div className="space-y-1">
+                                                <p className="text-muted-foreground text-xs uppercase font-semibold">Estimated Profit</p>
+                                                <p className="font-semibold text-lg text-emerald-600">LKR {Number(formData.calculatedProfit || 0).toLocaleString()}</p>
+                                            </div>
+                                            <div className="space-y-1">
+                                                <p className="text-muted-foreground text-xs uppercase font-semibold">Profit Margin</p>
+                                                <p className="font-semibold text-base">
+                                                    {formData.profitMarginType === 'percentage'
+                                                        ? `${formData.profitMarginValue}%`
+                                                        : `LKR ${Number(formData.profitMarginValue || 0).toLocaleString()} (${Number(formData.purchaseCost) > 0 ? ((Number(formData.calculatedProfit) / Number(formData.purchaseCost)) * 100).toFixed(2) : 0}%)`
+                                                    }
+                                                </p>
+                                            </div>
+
+                                            {formData.discountType !== 'none' && formData.discountValue > 0 && (
+                                                <>
+                                                    <div className="space-y-1">
+                                                        <p className="text-muted-foreground text-xs uppercase font-semibold">Total Discount</p>
+                                                        <p className="font-semibold text-lg text-orange-600">
+                                                            LKR {(Number(formData.price || 0) - Number(formData.discountedPrice || formData.price || 0)).toLocaleString()}
+                                                        </p>
+                                                    </div>
+                                                    <div className="space-y-1">
+                                                        <p className="text-muted-foreground text-xs uppercase font-semibold">Applied Discount</p>
+                                                        <p className="font-semibold text-lg text-foreground">
+                                                            {formData.discountType === 'percentage'
+                                                                ? `${formData.discountValue}% OFF`
+                                                                : `LKR ${Number(formData.discountValue || 0).toLocaleString()} (${Number(formData.price) > 0 ? ((Number(formData.discountValue) / Number(formData.price)) * 100).toFixed(2) : 0}%)`
+                                                            }
+                                                        </p>
+                                                    </div>
+                                                </>
+                                            )}
+                                        </div>
+                                    </div>
+                                )}
+                            </div>
+                        )}
                     </CardContent>
                 </Card>
 
+                {/* This section handles vehicle description input, shows existing uploaded images, and allows uploading/removing new images with preview before saving */}
                 <Card>
                     <CardHeader>
                         <CardTitle>Description & Images</CardTitle>
@@ -791,7 +916,7 @@ export default function EditVehicle() {
                                     {existingImages.map((img, index) => (
                                         <div key={index} className="relative aspect-video rounded-md overflow-hidden bg-gray-100 border">
                                             <img
-                                                src={`http://localhost:5000${img}`}
+                                                src={getImageUrl(img)}
                                                 alt="Existing"
                                                 className="w-full h-full object-cover"
                                             />
@@ -849,7 +974,7 @@ export default function EditVehicle() {
                         Cancel
                     </Button>
                     <Button type="submit" disabled={updateVehicleMutation.isPending}>
-                        {updateVehicleMutation.isPending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                        {updateVehicleMutation.isPending && <Loader size="sm" className="mr-2" />}
                         Update Vehicle
                     </Button>
                 </div>

@@ -21,4 +21,27 @@ api.interceptors.request.use(
     }
 );
 
+api.interceptors.response.use(
+    (response) => {
+        return response;
+    },
+    (error) => {
+        // Handle global error cases (e.g. 401 Unauthorized)
+        if (error.response && error.response.status === 401) {
+            // Optional: Logout user, redirect to login, etc.
+            // localStorage.removeItem('token');
+            // window.location.href = '/login';
+        }
+        
+        console.error('API Error:', {
+            url: error.config?.url,
+            method: error.config?.method,
+            status: error.response?.status,
+            data: error.response?.data
+        });
+
+        return Promise.reject(error);
+    }
+);
+
 export default api;

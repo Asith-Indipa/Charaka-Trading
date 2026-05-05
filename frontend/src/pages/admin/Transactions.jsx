@@ -1,5 +1,6 @@
 // This page lists all transactions with search and filter capabilities. Admins can view details of each transaction and create new ones if they have the appropriate permissions.you can see this page as the "Transactions Dashboard" for admins, providing an overview of all transactions in the system. It includes a search bar to quickly find transactions by ID or buyer name, and dropdown filters to narrow down transactions by type (sale or purchase) and status (pending, completed, cancelled). Each transaction is displayed in a table with key details and a link to view more information. Admins with the right permissions can also create new transactions from this page.
-//this is the transaction listing page
+//this page you can see when click Dashboard > View Transactions
+
 
 import { useQuery } from '@tanstack/react-query';
 import { Link } from 'react-router-dom';
@@ -26,6 +27,7 @@ import { useState } from 'react';
 import { Search } from 'lucide-react';
 import { useAuth } from '@/context/AuthContext';
 import { PERMISSIONS } from '@/utils/roles';
+import { PageLoader } from "@/components/common/Loader";
 
 export default function Transactions() {
     const { can } = useAuth();
@@ -51,7 +53,7 @@ export default function Transactions() {
         return matchesSearch && matchesType && matchesStatus;
     });
 
-    if (isLoading) return <div className="p-8">Loading transactions...</div>;
+    if (isLoading) return <PageLoader text="Fetching transaction logs..." />;
     if (error) return <div className="p-8 text-red-500">Error loading transactions</div>;
 
     return (

@@ -1,3 +1,5 @@
+
+
 import { clsx } from "clsx";
 import { twMerge } from "tailwind-merge"
 
@@ -5,6 +7,8 @@ export function cn(...inputs) {
   return twMerge(clsx(inputs));
 }
 
+
+//Formatting a number as Sri Lankan Rupees (LKR)
 export function formatCurrency(value) {
   return new Intl.NumberFormat('en-US', {
     style: 'currency',
@@ -13,6 +17,7 @@ export function formatCurrency(value) {
   }).format(value);
 }
 
+//Converting large numbers to short form
 export function formatCompactNumber(value) {
   return new Intl.NumberFormat('en-US', {
     notation: 'compact',
@@ -21,6 +26,7 @@ export function formatCompactNumber(value) {
   }).format(value);
 }
 
+//Add "LKR" to the compact number
 export function formatCompactCurrency(value) {
   return 'LKR ' + formatCompactNumber(value);
 }
