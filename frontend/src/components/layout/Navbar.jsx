@@ -1,3 +1,5 @@
+// this is the navbar component
+
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '@/context/AuthContext';
 import { Button } from '@/components/ui/button';
@@ -13,9 +15,12 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { User, LogOut, LayoutDashboard, Settings, Menu, Building2, Shield } from 'lucide-react';
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
 import { PERMISSIONS } from '@/utils/roles';
+import { useTheme } from '@/context/ThemeContext';
+import { Sun, Moon } from 'lucide-react';
 
 export default function Navbar() {
     const { user, logout, isAuthenticated, isAdmin, can } = useAuth();
+    const { isDark, toggle: toggleTheme } = useTheme();
     const navigate = useNavigate();
 
     const handleLogout = () => {
@@ -24,7 +29,7 @@ export default function Navbar() {
     };
 
     return (
-        <header className="border-b bg-white sticky top-0 z-50 shadow-sm">
+        <header className="border-b bg-background/95 backdrop-blur-sm sticky top-0 z-50 shadow-sm">
             <div className="container mx-auto flex h-16 items-center justify-between px-4">
                 <Link to="/" className="text-xl font-bold tracking-tight text-primary flex items-center gap-2">
                     <span className="bg-primary text-primary-foreground p-1 rounded">CT</span>
@@ -43,7 +48,19 @@ export default function Navbar() {
                         </Link>
                     )}
                 </nav>
-                <div className="flex items-center gap-4">
+                <div className="flex items-center gap-2">
+                    {/* Theme Toggle */}
+                    <Button
+                        variant="ghost"
+                        size="icon"
+                        onClick={toggleTheme}
+                        className="h-9 w-9"
+                        title={isDark ? 'Switch to light mode' : 'Switch to dark mode'}
+                        id="theme-toggle-btn"
+                    >
+                        {isDark ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
+                    </Button>
+
                     {/* Mobile Menu */}
                     <div className="md:hidden">
                         <Sheet>
@@ -68,6 +85,16 @@ export default function Navbar() {
                                             Dashboard
                                         </Link>
                                     )}
+                                    <div className="flex items-center justify-between border-t border-b py-4 my-2">
+                                        <span className="text-sm font-medium">Theme</span>
+                                        <Button variant="outline" size="sm" onClick={toggleTheme} className="flex gap-2">
+                                            {isDark ? (
+                                                <><Sun className="h-4 w-4" /> Light</>
+                                            ) : (
+                                                <><Moon className="h-4 w-4" /> Dark</>
+                                            )}
+                                        </Button>
+                                    </div>
                                     {isAuthenticated ? (
                                         <>
                                             <div className="border-t pt-4 mt-2">
@@ -98,20 +125,21 @@ export default function Navbar() {
                         </Sheet>
                     </div>
 
+                    {/* This is the profile dropdown*/}
                     {isAuthenticated ? (
                         <DropdownMenu>
                             <DropdownMenuTrigger asChild>
                                 <Button variant="ghost" className="relative h-8 w-8 rounded-full hidden md:flex">
                                     <Avatar className="h-8 w-8">
-                                        <AvatarImage src="/avatars/01.png" alt={user?.username} />
-                                        <AvatarFallback>{user?.username?.substring(0, 2).toUpperCase()}</AvatarFallback>
+                                        <AvatarImage src="/avatars/01.png" alt={user?.email} />
+                                        <AvatarFallback>{user?.email?.substring(0, 2).toUpperCase()}</AvatarFallback>
                                     </Avatar>
                                 </Button>
                             </DropdownMenuTrigger>
                             <DropdownMenuContent className="w-56" align="end" forceMount>
                                 <DropdownMenuLabel className="font-normal">
                                     <div className="flex flex-col space-y-1">
-                                        <p className="text-sm font-medium leading-none">{user?.username}</p>
+                                        <p className="text-sm font-medium leading-none">{user?.email}</p>
                                         <p className="text-xs leading-none text-muted-foreground">
                                             {user?.email}
                                         </p>
