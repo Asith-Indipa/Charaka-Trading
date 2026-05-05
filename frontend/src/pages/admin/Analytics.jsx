@@ -10,6 +10,7 @@ import {
 } from 'recharts';
 import { ChartContainer, ChartTooltip, ChartTooltipContent, ChartLegend, ChartLegendContent } from "@/components/ui/chart";
 import { Calendar, TrendingUp, DollarSign, ShoppingCart, Award } from "lucide-react";
+import { Loader, PageLoader } from "@/components/common/Loader";
 
 export default function Analytics() {
     const [dateRange, setDateRange] = useState('all');
@@ -51,9 +52,7 @@ export default function Analytics() {
         }
     });
 
-    if (isLoading) {
-        return <div className="p-8 text-center">Loading analytics data...</div>;
-    }
+    if (isLoading) return <PageLoader text="Analysing data trends..." />;
 
     if (error) {
         return <div className="p-8 text-center text-red-500">Error loading analytics: {error.message}</div>;
@@ -174,7 +173,7 @@ export default function Analytics() {
                     </CardContent>
                 </Card>
 
-                {/* <Card>
+                <Card>
                     <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                         <CardTitle className="text-sm font-medium">Avg Sale Price</CardTitle>
                         <DollarSign className="h-4 w-4 text-muted-foreground" />
@@ -187,7 +186,7 @@ export default function Analytics() {
                             Per vehicle sold
                         </p>
                     </CardContent>
-                </Card> */}
+                </Card>
 
                 <Card>
                     <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">

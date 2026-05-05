@@ -14,11 +14,12 @@ const getDashboardStats = async (req, res) => {
         ]);
         const purchaseRevenue = purchaseRevenueResult.length > 0 ? purchaseRevenueResult[0].total : 0;
 
-        // Total Profit of all sold vehicles (calculatedProfit lives on Vehicle, not Transaction)
-        const totalProfitResult = await Vehicle.aggregate([
-            { $match: { status: 'sold' } },
-            { $group: { _id: null, total: { $sum: { $ifNull: ['$calculatedProfit', 0] } } } }
-        ]);
+        //Total Profit of all solde vehicle
+        const totalProfitResult = await Transaction.aggregate([
+            { $match: { type: 'sale', status: 'completed' } },
+            { $group: { _id: null, total: { $sum: '$calculatedProfit' } } }
+        ])
+        console.log(totalProfitResult);
         const totalProfit = totalProfitResult.length > 0 ? totalProfitResult[0].total : 0;
 
         // 2. Calculate Sale Revenue (sum of completed sale transactions)
@@ -316,6 +317,17 @@ const getDetailedAnalytics = async (req, res) => {
             }
         ]);
 
+        const avgtmp = await Transaction.aggregate([
+            { $match: { ...dateFilter, status: 'completed' } },
+            {
+                $group: {
+                    _id: '$type',
+                    total: { $sum: '$finalAmount' },
+                    cost: { $sum: { $ifNull: ['$vehicleSnapshot.originalPrice', 0] } },
+                }
+            }
+        ]);
+
         let purchaseTotal = 0, saleTotal = 0, purchaseCountTotal = 0, saleCountTotal = 0, saleCostTotal = 0;
         totals.forEach(item => {
             if (item._id === 'purchase') {
@@ -328,14 +340,13 @@ const getDetailedAnalytics = async (req, res) => {
             }
         });
 
-        //const netProfit = saleTotal - saleCostTotal;
+        const totalProfitResult = await Transaction.aggregate([
+            { $match: { type: 'sale', status: 'completed' } },
+            { $group: { _id: null, total: { $sum: '$calculatedProfit' } } }
+        ])
+        //console.log(totalProfitResult);
 
-        const netProfitResult = await Vehicle.aggregate([
-            { $match: { status: 'sold' } },
-            { $group: { _id: null, total: { $sum: { $ifNull: ['$calculatedProfit', 0] } } } }
-        ]);
-
-        const netProfit = netProfitResult.length > 0 ? netProfitResult[0].total : 0;
+        const netProfit = totalProfitResult[0].total;
 
         // 6. Vehicle Inventory Turnover
         const totalVehicles = await Vehicle.countDocuments();
@@ -352,7 +363,8 @@ const getDetailedAnalytics = async (req, res) => {
                     profitMargin: saleCostTotal > 0 ? ((netProfit / saleCostTotal) * 100).toFixed(2) : 0,
                     purchaseCount: purchaseCountTotal,
                     saleCount: saleCountTotal,
-                    avgSalePrice: saleCountTotal > 0 ? (saleTotal / saleCountTotal).toFixed(2) : 0,
+                    avgSalePrice1: saleCountTotal > 0 ? (saleTotal / saleCountTotal).toFixed(2) : 0,
+                    avgSalePrice:avgtmp || 0,
                     avgPurchasePrice: purchaseCountTotal > 0 ? (purchaseTotal / purchaseCountTotal).toFixed(2) : 0,
                     turnoverRate: parseFloat(turnoverRate)
                 },

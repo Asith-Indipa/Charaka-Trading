@@ -3,9 +3,9 @@
 
 import { createContext, useContext, useState, useEffect } from 'react';
 import api from '@/api/axios';
-import { ROLES, hasPermission } from '@/utils/roles';
+import { ROLES, ROLE_PERMISSIONS } from '@/utils/roles';
 
-const AuthContext = createContext(null);
+export const AuthContext = createContext(null);
 
 export const AuthProvider = ({ children }) => {
     const [user, setUser] = useState(null);
@@ -16,10 +16,23 @@ export const AuthProvider = ({ children }) => {
         try {
             const res = await api.get('/permissions');
             if (res.data.success) {
-                setDynamicPermissions(res.data.data.mapping);
+                // Merge: start with static defaults, then overlay DB values.
+                // This ensures newly added permissions in constants are always visible
+                // even if the DB has a stale/incomplete mapping for a role.
+                const dbMapping = res.data.data.mapping;
+                const merged = {};
+                Object.keys(ROLE_PERMISSIONS).forEach(role => {
+                    const staticPerms = ROLE_PERMISSIONS[role] || [];
+                    const dbPerms = dbMapping[role] || [];
+                    // Union of both sets so neither source loses permissions
+                    merged[role] = Array.from(new Set([...staticPerms, ...dbPerms]));
+                });
+                setDynamicPermissions(merged);
             }
         } catch (error) {
             console.error("Failed to fetch dynamic permissions", error);
+            // Fall back to static permissions so the app stays usable offline
+            setDynamicPermissions(ROLE_PERMISSIONS);
         }
     };
 
@@ -72,8 +85,10 @@ export const AuthProvider = ({ children }) => {
     };
 
     const can = (permission) => {
-        if (!user || !user.role || !dynamicPermissions) return false;
-        const permissions = dynamicPermissions[user.role] || [];
+        if (!user || !user.role) return false;
+        // Use dynamic (merged) permissions if available, otherwise fall back to static defaults
+        const effectivePermissions = dynamicPermissions ?? ROLE_PERMISSIONS;
+        const permissions = effectivePermissions[user.role] || [];
         return permissions.includes(permission);
     };
 
@@ -86,7 +101,7 @@ export const AuthProvider = ({ children }) => {
         isAuthenticated: !!user,
         isAdmin: user?.role === ROLES.ADMIN || user?.role === ROLES.MODERATOR,
         can,
-        refreshPermissions: fetchPermissions // Expose this so Permissions.jsx can trigger it if needed
+        refreshPermissions: fetchPermissions
     };
 
     return (
@@ -95,7 +110,7 @@ export const AuthProvider = ({ children }) => {
         </AuthContext.Provider>
     );
 };
-
+// Re-export useAuth here so all existing imports from '@/context/AuthContext' still work
 export const useAuth = () => {
     const context = useContext(AuthContext);
     if (!context) {
