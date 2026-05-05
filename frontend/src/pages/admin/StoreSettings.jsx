@@ -16,9 +16,11 @@ import {
     FormDescription
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from "@/components/ui/card";
 import { toast } from "sonner";
-import { Loader2, Save, Building2, Phone, Mail, MapPin, FileLock2, Fingerprint } from 'lucide-react';
+import { Save, Building2, Phone, Mail, MapPin, FileLock2, Fingerprint, Landmark } from 'lucide-react';
+import { Loader, PageLoader } from '@/components/common/Loader';
 import { Separator } from "@/components/ui/separator";
 import { useAuth } from '@/context/AuthContext';
 import { PERMISSIONS } from '@/utils/roles';
@@ -42,7 +44,9 @@ export default function StoreSettings() {
             email: '',
             address: '',
             registrationNumber: '',
-            taxID: ''
+            taxID: '',
+            bankDetails: '',
+            defaultBookingPercentage: 10
         }
     });
 
@@ -54,7 +58,9 @@ export default function StoreSettings() {
                 email: storeData.email || '',
                 address: storeData.address || '',
                 registrationNumber: storeData.registrationNumber || '',
-                taxID: storeData.taxID || ''
+                taxID: storeData.taxID || '',
+                bankDetails: storeData.bankDetails || '',
+                defaultBookingPercentage: storeData.defaultBookingPercentage ?? 10
             });
         }
     }, [storeData, form]);
@@ -77,13 +83,7 @@ export default function StoreSettings() {
         updateStoreMutation.mutate(values);
     };
 
-    if (isLoading) {
-        return (
-            <div className="flex h-[400px] items-center justify-center">
-                <Loader2 className="h-8 w-8 animate-spin text-primary" />
-            </div>
-        );
-    }
+    if (isLoading) return <PageLoader text="Loading store details..." />;
 
     return (
         <div className="container mx-auto py-10 max-w-4xl px-4">
@@ -195,19 +195,60 @@ export default function StoreSettings() {
                                 />
                             </div>
 
+                            <Separator />
+
+                            <div className="grid grid-cols-1">
+                                <FormField
+                                    control={form.control}
+                                    name="bankDetails"
+                                    render={({ field }) => (
+                                        <FormItem>
+                                            <FormLabel className="flex items-center gap-2"><Landmark className="h-4 w-4" /> Bank Account Details (For Bookings)</FormLabel>
+                                            <FormControl>
+                                                <Textarea
+                                                    placeholder="Bank Name: Example Bank&#10;Account Name: Charaka Trading&#10;Account No: 1234567890&#10;Branch: Colombo"
+                                                    className="min-h-[100px]"
+                                                    {...field}
+                                                />
+                                            </FormControl>
+                                            <FormDescription>These details will be shown to customers when they book a vehicle.</FormDescription>
+                                            <FormMessage />
+                                        </FormItem>
+                                    )}
+                                />
+                            </div>
+
+                            <Separator />
+
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                <FormField
+                                    control={form.control}
+                                    name="defaultBookingPercentage"
+                                    render={({ field }) => (
+                                        <FormItem>
+                                            <FormLabel className="flex items-center gap-2">Default Booking Percentage (%)</FormLabel>
+                                            <FormControl>
+                                                <Input
+                                                    type="number"
+                                                    max="100"
+                                                    {...field}
+                                                    onChange={e => field.onChange(parseFloat(e.target.value))}
+                                                />
+                                            </FormControl>
+                                            <FormDescription>Global booking amount percentage for all vehicles unless overridden individually.</FormDescription>
+                                            <FormMessage />
+                                        </FormItem>
+                                    )}
+                                />
+                            </div>
+
                             {can(PERMISSIONS.STORE_EDIT) && (
                                 <div className="flex justify-end pt-4">
                                     <Button type="submit" size="lg" disabled={updateStoreMutation.isPending}>
                                         {updateStoreMutation.isPending ? (
-                                            <>
-                                                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                                                Saving...
-                                            </>
+                                            <><Loader size="sm" className="mr-2" /> Saving...</>
                                         ) : (
-                                            <>
-                                                <Save className="mr-2 h-4 w-4" />
-                                                Save Settings
-                                            </>
+                                            <><Save className="mr-2 h-4 w-4" /> Save Settings</>
                                         )}
                                     </Button>
                                 </div>

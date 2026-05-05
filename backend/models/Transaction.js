@@ -150,6 +150,12 @@ const transactionSchema = new mongoose.Schema({
         required: true
     },
 
+    calculatedProfit: {
+        type: Number,
+        default: 0,
+        min: 0
+    },
+
     // Dates
     transactionDate: {
         type: Date,

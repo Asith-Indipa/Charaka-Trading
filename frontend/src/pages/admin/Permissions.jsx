@@ -1,5 +1,7 @@
 // This component provides a dynamic interface for managing role-based permissions in the system.
-//this page you can see when click Dashboard -> Settings -> Permissions. It allows administrators to view and modify which permissions are assigned to each role in the system. The permissions are displayed in a table format, grouped by feature area (e.g., Vehicles, Transactions, Users). Admins can toggle checkboxes to grant or revoke specific permissions for each role, with changes taking effect immediately on the next API request. The "admin" role has locked permissions to prevent accidental lockout, while other roles can be customized as needed. A security guideline card at the bottom provides important information about how permission changes affect user access.
+// It allows administrators to grant or revoke specific access for different roles within the system.
+//this page you can see when click Dashboard -> Settings -> Permissions. 
+
 
 
 import { useState, useEffect } from 'react';
@@ -16,7 +18,8 @@ import {
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Shield, ShieldAlert, Loader2, Save, RotateCcw } from "lucide-react";
+import { Shield, ShieldAlert, Save, RotateCcw } from "lucide-react";
+import { Loader, PageLoader } from "@/components/common/Loader";
 import { toast } from "sonner";
 
 import { useAuth } from '@/context/AuthContext';
@@ -57,11 +60,7 @@ export default function Permissions() {
         }
     });
 
-    if (isLoading) return (
-        <div className="flex h-[400px] items-center justify-center">
-            <Loader2 className="h-8 w-8 animate-spin text-primary" />
-        </div>
-    );
+    if (isLoading) return <PageLoader text="Loading permissions..." />;
 
     if (error) return (
         <div className="p-8 text-center text-red-500 border-2 border-dashed border-red-200 rounded-lg">
@@ -122,7 +121,7 @@ export default function Permissions() {
                             Discard
                         </Button>
                         <Button size="sm" onClick={handleSave} disabled={saveMutation.isPending}>
-                            {saveMutation.isPending ? <Loader2 className="h-4 w-4 animate-spin" /> : <Save className="h-4 w-4 mr-2" />}
+                            {saveMutation.isPending ? <Loader size="sm" /> : <Save className="h-4 w-4 mr-2" />}
                             Save Changes
                         </Button>
                     </div>
