@@ -13,10 +13,10 @@ const generateToken = (id) => {
 // @access  Public
 const register = async (req, res) => {
     try {
-        const { username, email, password, role, firstName, lastName, phone } = req.body;
+        const { email, password, role, firstName, lastName, phone } = req.body;
 
         // Check if user exists
-        const userExists = await User.findOne({ $or: [{ email }, { username }] });
+        const userExists = await User.findOne({ email });
 
         if (userExists) {
             return res.status(400).json({
@@ -27,7 +27,6 @@ const register = async (req, res) => {
 
         // Create user
         const user = await User.create({
-            username,
             email,
             password,
             role: role || 'user',
@@ -44,7 +43,6 @@ const register = async (req, res) => {
             message: 'User registered successfully',
             data: {
                 _id: user._id,
-                username: user.username,
                 email: user.email,
                 role: user.role,
                 token
@@ -111,7 +109,6 @@ const login = async (req, res) => {
             message: 'Login successful',
             data: {
                 _id: user._id,
-                username: user.username,
                 email: user.email,
                 role: user.role,
                 token
@@ -175,9 +172,9 @@ const getUsers = async (req, res) => {
 // @access  Private (Admin)
 const createUser = async (req, res) => {
     try {
-        const { username, email, password, role, firstName, lastName, phone } = req.body;
+        const { email, password, role, firstName, lastName, phone } = req.body;
 
-        const userExists = await User.findOne({ $or: [{ email }, { username }] });
+        const userExists = await User.findOne({ email });
 
         if (userExists) {
             return res.status(400).json({
@@ -187,7 +184,6 @@ const createUser = async (req, res) => {
         }
 
         const user = await User.create({
-            username,
             email,
             password,
             role: role || 'user',
@@ -201,7 +197,6 @@ const createUser = async (req, res) => {
             message: 'User created successfully',
             data: {
                 _id: user._id,
-                username: user.username,
                 email: user.email,
                 role: user.role
             }
