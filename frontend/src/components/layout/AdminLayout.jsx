@@ -17,45 +17,45 @@ const NAV_GROUPS = [
     {
         label: 'Overview',
         items: [
-            { label: 'Dashboard',  icon: LayoutDashboard, to: '/admin/dashboard',  permission: PERMISSIONS.ANALYTICS_VIEW },
-            { label: 'Analytics',  icon: TrendingUp,       to: '/admin/analytics',  permission: PERMISSIONS.ANALYTICS_VIEW },
+            { label: 'Dashboard', icon: LayoutDashboard, to: '/admin/dashboard', permission: PERMISSIONS.ANALYTICS_VIEW },
+            { label: 'Analytics', icon: TrendingUp, to: '/admin/analytics', permission: PERMISSIONS.ANALYTICS_VIEW },
         ],
     },
     {
         label: 'Inventory',
         items: [
-            { label: 'All Vehicles', icon: List,       to: '/admin/vehicles',     permission: PERMISSIONS.VEHICLE_VIEW },
-            { label: 'Add Vehicle',  icon: PlusCircle, to: '/admin/vehicles/new', permission: PERMISSIONS.VEHICLE_CREATE },
-            { label: 'Bookings',     icon: CalendarCheck, to: '/admin/bookings',     permission: PERMISSIONS.VEHICLE_EDIT },
+            { label: 'All Vehicles', icon: List, to: '/admin/vehicles', permission: PERMISSIONS.VEHICLE_VIEW },
+            { label: 'Add Vehicle', icon: PlusCircle, to: '/admin/vehicles/new', permission: PERMISSIONS.VEHICLE_CREATE },
+            { label: 'Bookings', icon: CalendarCheck, to: '/admin/bookings', permission: PERMISSIONS.VEHICLE_EDIT },
         ],
     },
     {
         label: 'Sales',
         items: [
-            { label: 'Transactions',     icon: Receipt,    to: '/admin/transactions',     permission: PERMISSIONS.TRANSACTION_VIEW },
-            { label: 'New Transaction',  icon: PlusCircle, to: '/admin/transactions/new', permission: PERMISSIONS.TRANSACTION_CREATE },
+            { label: 'Transactions', icon: Receipt, to: '/admin/transactions', permission: PERMISSIONS.TRANSACTION_VIEW },
+            { label: 'New Transaction', icon: PlusCircle, to: '/admin/transactions/new', permission: PERMISSIONS.TRANSACTION_CREATE },
         ],
     },
-    {
-        label: 'HR & Payroll',
-        items: [
-            { label: 'Employees',         icon: Users,       to: '/admin/employees', permission: PERMISSIONS.EMPLOYEE_VIEW },
-            { label: 'Salary Management', icon: DollarSign,  to: '/admin/salary',    permission: PERMISSIONS.EMPLOYEE_SALARY_MANAGE },
-        ],
-    },
+    // {
+    //     label: 'HR & Payroll',
+    //     items: [
+    //         { label: 'Employees',         icon: Users,       to: '/admin/employees', permission: PERMISSIONS.EMPLOYEE_VIEW },
+    //         { label: 'Salary Management', icon: DollarSign,  to: '/admin/salary',    permission: PERMISSIONS.EMPLOYEE_SALARY_MANAGE },
+    //     ],
+    // },
     {
         label: 'Administration',
         items: [
-            { label: 'User Accounts',  icon: UserCog, to: '/admin/users',                       permission: PERMISSIONS.USER_VIEW },
-            { label: 'Store Settings', icon: Store,   to: '/admin/settings?tab=store',           permission: PERMISSIONS.STORE_EDIT },
-            { label: 'Permissions',    icon: Shield,  to: '/admin/settings?tab=permissions',     permission: PERMISSIONS.USER_CREATE },
+            { label: 'User Accounts', icon: UserCog, to: '/admin/users', permission: PERMISSIONS.USER_VIEW },
+            { label: 'Store Settings', icon: Store, to: '/admin/settings?tab=store', permission: PERMISSIONS.STORE_EDIT },
+            { label: 'Permissions', icon: Shield, to: '/admin/settings?tab=permissions', permission: PERMISSIONS.USER_CREATE },
         ],
     },
     {
         label: 'Account',
         items: [
             { label: 'Settings', icon: Settings, to: '/admin/settings' },
-            { label: 'Profile',  icon: User,     to: '/admin/profile' },
+            { label: 'Profile', icon: User, to: '/admin/profile' },
         ],
     },
 ];
@@ -76,10 +76,10 @@ function NavItem({ item, collapsed, onClick }) {
     } else {
         // For /admin/settings (no query) — only exact match to avoid collision with ?tab= links
         const isParent = item.to === '/admin/settings' || item.to === '/admin/profile';
-        
+
         const isExactMatch = location.pathname === itemPath;
         const isPrefixMatch = itemPath !== '/admin/dashboard' && location.pathname.startsWith(itemPath + '/');
-        
+
         // If it's a prefix match, ensure we aren't exactly matching another specialized nav item
         // e.g., if on /admin/vehicles/new, "All Vehicles" (/admin/vehicles) shouldn't be active
         const matchesOtherItemExactly = ALL_NAV_PATHS.some(p => p !== itemPath && location.pathname === p);
@@ -266,7 +266,7 @@ export default function AdminLayout() {
             )}>
                 <Sidebar
                     collapsed={false}
-                    setCollapsed={() => {}}
+                    setCollapsed={() => { }}
                     onClose={() => setMobileOpen(false)}
                     isMobile={true}
                 />

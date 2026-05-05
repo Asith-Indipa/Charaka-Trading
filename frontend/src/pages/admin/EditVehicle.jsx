@@ -821,7 +821,7 @@ export default function EditVehicle() {
                                         </div>
                                     </div>
 
-                                    <div className="space-y-2">
+                                    {/* <div className="space-y-2">
                                         <label className="text-sm font-medium leading-none">Custom Booking Percentage (%)</label>
                                         <Input
                                             type="number"
@@ -835,7 +835,7 @@ export default function EditVehicle() {
                                         <p className="text-[10px] text-muted-foreground italic">
                                             If left empty, the store's global default will be used.
                                         </p>
-                                    </div>
+                                    </div> */}
                                 </div>
 
                                 {formData.purchaseCost && formData.profitMarginValue && (
