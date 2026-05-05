@@ -1,10 +1,9 @@
-// This component renders the login form and handles user authentication.
 
 import { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '@/context/AuthContext';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -20,7 +19,11 @@ const formSchema = z.object({
 export default function Login() {
     const { login } = useAuth();
     const navigate = useNavigate();
+    const location = useLocation();
     const [loading, setLoading] = useState(false);
+
+    const queryParams = new URLSearchParams(location.search);
+    const returnUrl = queryParams.get('returnUrl') || '/';
 
     const form = useForm({
         resolver: zodResolver(formSchema),
@@ -35,7 +38,7 @@ export default function Login() {
         try {
             await login(values.email, values.password);
             toast.success('Logged in successfully');
-            navigate('/');
+            navigate(returnUrl);
         } catch (error) {
             console.error(error);
             toast.error(error.response?.data?.message || 'Failed to login');
@@ -45,7 +48,7 @@ export default function Login() {
     };
 
     return (
-        <div className="flex items-center justify-center min-h-screen bg-gray-100 p-4">
+        <div className="flex items-center justify-center min-h-screen bg-background p-4">
             <Card className="w-full max-w-md">
                 <CardHeader>
                     <CardTitle className="text-2xl">Login</CardTitle>
@@ -87,9 +90,9 @@ export default function Login() {
                     </Form>
                 </CardContent>
                 <CardFooter className="flex justify-center">
-                    <p className="text-sm text-gray-500">
+                    <p className="text-sm text-muted-foreground">
                         Don't have an account?{' '}
-                        <Link to="/register" className="text-blue-600 hover:underline">
+                        <Link to={`/register${returnUrl !== '/' ? `?returnUrl=${encodeURIComponent(returnUrl)}` : ''}`} className="text-primary hover:underline">
                             Register
                         </Link>
                     </p>
