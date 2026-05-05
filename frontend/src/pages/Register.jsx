@@ -1,10 +1,9 @@
-//this is the register page
 
 import { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '@/context/AuthContext';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -13,7 +12,6 @@ import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '
 import { toast } from 'sonner';
 
 const formSchema = z.object({
-    username: z.string().min(3, { message: 'Username must be at least 3 characters' }),
     email: z.string().email({ message: 'Invalid email address' }),
     password: z.string().min(6, { message: 'Password must be at least 6 characters' }),
     firstName: z.string().optional(),
@@ -24,12 +22,15 @@ const formSchema = z.object({
 export default function Register() {
     const { register } = useAuth();
     const navigate = useNavigate();
+    const location = useLocation();
     const [loading, setLoading] = useState(false);
+
+    const queryParams = new URLSearchParams(location.search);
+    const returnUrl = queryParams.get('returnUrl') || '/';
 
     const form = useForm({
         resolver: zodResolver(formSchema),
         defaultValues: {
-            username: '',
             email: '',
             password: '',
             firstName: '',
@@ -43,7 +44,7 @@ export default function Register() {
         try {
             await register(values);
             toast.success('Registered successfully');
-            navigate('/');
+            navigate(returnUrl);
         } catch (error) {
             console.error(error);
             toast.error(error.response?.data?.message || 'Failed to register');
@@ -53,7 +54,7 @@ export default function Register() {
     };
 
     return (
-        <div className="flex items-center justify-center min-h-screen bg-gray-100 p-4">
+        <div className="flex items-center justify-center min-h-screen bg-background p-4">
             <Card className="w-full max-w-lg">
                 <CardHeader>
                     <CardTitle className="text-2xl">Register</CardTitle>
@@ -62,19 +63,6 @@ export default function Register() {
                 <CardContent>
                     <Form {...form}>
                         <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
-                            <FormField
-                                control={form.control}
-                                name="username"
-                                render={({ field }) => (
-                                    <FormItem>
-                                        <FormLabel>Username</FormLabel>
-                                        <FormControl>
-                                            <Input placeholder="johndoe" {...field} />
-                                        </FormControl>
-                                        <FormMessage />
-                                    </FormItem>
-                                )}
-                            />
                             <FormField
                                 control={form.control}
                                 name="email"
@@ -149,9 +137,9 @@ export default function Register() {
                     </Form>
                 </CardContent>
                 <CardFooter className="flex justify-center">
-                    <p className="text-sm text-gray-500">
+                    <p className="text-sm text-muted-foreground">
                         Already have an account?{' '}
-                        <Link to="/login" className="text-blue-600 hover:underline">
+                        <Link to={`/login${returnUrl !== '/' ? `?returnUrl=${encodeURIComponent(returnUrl)}` : ''}`} className="text-primary hover:underline">
                             Login
                         </Link>
                     </p>
