@@ -10,6 +10,8 @@ const transactionRoutes = require('./routes/transactionRoutes');
 const statsRoutes = require('./routes/statsRoutes');
 const storeRoutes = require('./routes/storeRoutes');
 const permissionRoutes = require('./routes/permissionRoutes');
+const employeeRoutes = require('./routes/employeeRoutes');
+const bookingRoutes = require('./routes/bookingRoutes');
 
 // Initialize express app
 const app = express();
@@ -32,6 +34,8 @@ app.use('/api/transactions', transactionRoutes);
 app.use('/api/stats', statsRoutes);
 app.use('/api/store', storeRoutes);
 app.use('/api/permissions', permissionRoutes);
+app.use('/api/employees', employeeRoutes);
+app.use('/api/bookings', bookingRoutes);
 
 // Health check route
 app.get('/health', (req, res) => {
@@ -58,41 +62,42 @@ app.get('/', (req, res) => {
 
 // Error handling middleware
 app.use((err, req, res, next) => {
-    console.error('Error:', err);
+    console.error('Error Stack:', err.stack);
+
+    // Default error values
+    let statusCode = err.status || 500;
+    let message = err.message || 'Internal server error';
+    let errorDetails = null;
+    let validationErrors = null;
 
     // Multer file upload errors
-    if (err.name === 'MulterError') {
-        return res.status(400).json({
-            success: false,
-            message: 'File upload error',
-            error: err.message
-        });
+    if (err.name === 'MulterError' || err.message.includes('Only image files are allowed')) {
+        statusCode = 400;
+        message = 'File upload error';
+        errorDetails = err.message;
     }
 
     // Mongoose validation errors
     if (err.name === 'ValidationError') {
-        const errors = Object.values(err.errors).map(e => e.message);
-        return res.status(400).json({
-            success: false,
-            message: 'Validation error',
-            errors
-        });
+        statusCode = 400;
+        message = 'Validation error';
+        validationErrors = Object.values(err.errors).map(e => e.message);
     }
 
     // Mongoose duplicate key error
     if (err.code === 11000) {
+        statusCode = 400;
         const field = Object.keys(err.keyPattern)[0];
-        return res.status(400).json({
-            success: false,
-            message: `${field} already exists`
-        });
+        message = `${field.charAt(0).toUpperCase() + field.slice(1)} already exists`;
     }
 
-    // Default error
-    res.status(err.status || 500).json({
+    // Standardized response
+    res.status(statusCode).json({
         success: false,
-        message: err.message || 'Internal server error',
-        error: process.env.NODE_ENV === 'development' ? err : {}
+        message,
+        error: errorDetails,
+        errors: validationErrors,
+        stack: process.env.NODE_ENV === 'development' ? err.stack : undefined
     });
 });
 

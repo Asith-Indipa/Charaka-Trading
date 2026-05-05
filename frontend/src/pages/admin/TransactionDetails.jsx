@@ -9,7 +9,9 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
-import { ArrowLeft, Printer, CheckCircle2, XCircle, Loader2 } from 'lucide-react';
+import { ArrowLeft, Printer, CheckCircle2, XCircle } from 'lucide-react';
+import { Loader, PageLoader } from '@/components/common/Loader';
+import { getImageUrl } from '@/lib/image';
 import { toast } from 'sonner';
 
 export default function TransactionDetails() {
@@ -40,7 +42,7 @@ export default function TransactionDetails() {
         }
     });
 
-    if (isLoading) return <div className="p-8 flex justify-center"><Loader2 className="animate-spin h-8 w-8" /></div>;
+    if (isLoading) return <PageLoader text="Loading transaction details..." />;
     if (error) return <div className="p-8 text-red-500">Error loading transaction details</div>;
 
     const transaction = transactionResponse.data;
@@ -206,7 +208,7 @@ export default function TransactionDetails() {
                             <div className="md:col-span-1">
                                 {vehicleSnapshot.images && vehicleSnapshot.images.length > 0 ? (
                                     <img
-                                        src={`http://localhost:5000${vehicleSnapshot.images[0]}`}
+                                        src={getImageUrl(vehicleSnapshot.images[0])}
                                         alt="Vehicle"
                                         className="rounded-lg object-cover w-full aspect-video border"
                                     />

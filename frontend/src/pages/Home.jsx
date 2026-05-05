@@ -1,5 +1,6 @@
 // This is the home page of the application, showcasing the main features and benefits of using Charaka. It includes a hero section with a call-to-action, a features section highlighting key advantages, and a final call-to-action to encourage users to join the platform.
 
+
 import { Button } from "@/components/ui/button"
 import { Link } from "react-router-dom"
 import { ArrowRight, CheckCircle, Shield, Truck } from "lucide-react"

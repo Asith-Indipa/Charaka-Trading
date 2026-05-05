@@ -1,4 +1,5 @@
 //this is the vehicle listing page
+//(click on vehicle button) in home page to see this page
 
 
 import { useState, useMemo } from 'react';
@@ -12,7 +13,9 @@ import { Label } from '@/components/ui/label';
 import { Separator } from '@/components/ui/separator';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Link } from 'react-router-dom';
+import { cn } from '@/lib/utils';
 import { Search, Filter, X } from 'lucide-react';
+import { getImageUrl } from '@/lib/image';
 import {
     Sheet,
     SheetContent,
@@ -21,6 +24,7 @@ import {
     SheetTitle,
     SheetTrigger,
 } from "@/components/ui/sheet"
+import { PageLoader } from '@/components/common/Loader';
 
 const fetchVehicles = async () => {
     const res = await api.get('/vehicles');
@@ -55,9 +59,9 @@ export default function Vehicles() {
             // Search
             const searchLower = search.toLowerCase();
             const matchesSearch =
-                vehicle.brand.toLowerCase().includes(searchLower) ||
-                vehicle.model.toLowerCase().includes(searchLower) ||
-                vehicle.vehicleNumber.toLowerCase().includes(searchLower);
+                (vehicle.brand?.toLowerCase() || '').includes(searchLower) ||
+                (vehicle.model?.toLowerCase() || '').includes(searchLower) ||
+                (vehicle.vehicleNumber?.toLowerCase() || '').includes(searchLower);
 
             // Status
             const matchesStatus = statusFilter === 'all' || vehicle.status === statusFilter;
@@ -89,7 +93,7 @@ export default function Vehicles() {
         setSortBy('newest');
     };
 
-    const FilterContent = () => (
+    const filterContentMarkup = (
         <div className="space-y-6">
             <div>
                 <h3 className="text-lg font-semibold mb-4">Filters</h3>
@@ -118,8 +122,7 @@ export default function Vehicles() {
                     <SelectContent>
                         <SelectItem value="all">All Statuses</SelectItem>
                         <SelectItem value="available">Available</SelectItem>
-                        <SelectItem value="sold">Sold</SelectItem>
-                        <SelectItem value="reserved">Reserved</SelectItem>
+                        <SelectItem value="booked">Booked</SelectItem>
                     </SelectContent>
                 </Select>
             </div>
@@ -140,7 +143,7 @@ export default function Vehicles() {
             </div>
 
             <div className="space-y-2">
-                <Label>Price Range</Label>
+                <Label>Price Range (LKR)</Label>
                 <div className="flex items-center gap-2">
                     <Input
                         type="number"
@@ -164,11 +167,7 @@ export default function Vehicles() {
         </div>
     );
 
-    if (isLoading) return (
-        <div className="container mx-auto p-4 py-8 flex justify-center items-center h-[50vh]">
-            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>
-        </div>
-    );
+    if (isLoading) return <PageLoader text="Finding the best vehicles for you..." />;
 
     if (error) return (
         <div className="container mx-auto p-4 py-8 text-center text-red-500">
@@ -186,7 +185,6 @@ export default function Vehicles() {
                     </p>
                 </div>
 
-                // Sort and Filter Controls
                 <div className="flex items-center gap-2 w-full md:w-auto">
                     <Select value={sortBy} onValueChange={setSortBy}>
                         <SelectTrigger className="w-[180px]">
@@ -216,7 +214,7 @@ export default function Vehicles() {
                                     </SheetDescription>
                                 </SheetHeader>
                                 <div className="mt-4">
-                                    <FilterContent />
+                                    {filterContentMarkup}
                                 </div>
                             </SheetContent>
                         </Sheet>
@@ -229,7 +227,7 @@ export default function Vehicles() {
                 <aside className="hidden md:block w-64 flex-shrink-0">
                     <Card>
                         <CardContent className="p-6">
-                            <FilterContent />
+                            {filterContentMarkup}
                         </CardContent>
                     </Card>
                 </aside>
@@ -237,21 +235,21 @@ export default function Vehicles() {
                 {/* Main Grid */}
                 <div className="flex-1">
                     {filteredVehicles.length === 0 ? (
-                        <div className="text-center py-12 bg-gray-50 rounded-lg border border-dashed">
-                            <h3 className="text-lg font-medium text-gray-900">No vehicles found</h3>
-                            <p className="text-gray-500 mt-1">Try adjusting your filters or search terms.</p>
-                            <Button variant="link" onClick={resetFilters} className="mt-2">
+                        <div className="text-center py-12 bg-muted/20 rounded-lg border border-dashed">
+                            <h3 className="text-lg font-medium">No vehicles found</h3>
+                            <p className="text-muted-foreground mt-1">Try adjusting your filters or search terms.</p>
+                            <Button variant="link" onClick={resetFilters} className="mt-2 text-primary">
                                 Clear all filters
                             </Button>
                         </div>
                     ) : (
                         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
                             {filteredVehicles.map(vehicle => (
-                                <Card key={vehicle._id} className="overflow-hidden flex flex-col hover:shadow-lg transition-all duration-300 group">
-                                    <div className="aspect-video relative bg-gray-100 overflow-hidden">
+                                <Card key={vehicle._id} className="overflow-hidden flex flex-col hover:shadow-lg transition-all duration-300 group bg-card">
+                                    <div className="aspect-video relative bg-muted/30 overflow-hidden">
                                         {vehicle.images && vehicle.images.length > 0 ? (
                                             <img
-                                                src={`http://localhost:5000${vehicle.images[0]}`}
+                                                src={getImageUrl(vehicle.images[0])}
                                                 alt={`${vehicle.brand} ${vehicle.model}`}
                                                 className="object-cover w-full h-full group-hover:scale-105 transition-transform duration-500"
                                                 onError={(e) => {
@@ -276,8 +274,11 @@ export default function Vehicles() {
                                         )}
                                         {vehicle.status !== 'available' && (
                                             <Badge
-                                                className="absolute top-2 left-2 capitalize shadow-sm"
-                                                variant="secondary"
+                                                className={cn(
+                                                    "absolute top-2 left-2 capitalize shadow-sm",
+                                                    vehicle.status === 'booked' ? "bg-amber-500 hover:bg-amber-600 border-none text-white" : ""
+                                                )}
+                                                variant={vehicle.status === 'booked' ? 'default' : 'secondary'}
                                             >
                                                 {vehicle.status}
                                             </Badge>
@@ -290,11 +291,12 @@ export default function Vehicles() {
                                                     {vehicle.year} {vehicle.brand} {vehicle.model}
                                                 </CardTitle>
                                                 <div className="text-sm text-muted-foreground flex items-center gap-2">
-                                                    <Badge variant="outline" className="text-xs font-normal">
+                                                    <Badge variant="outline" className={`text-xs font-normal ${vehicle.condition === 'new' ? 'bg-blue-400' : 'bg-yellow-400'}`}>
                                                         {vehicle.condition}
                                                     </Badge>
-                                                    <span>•</span>
-                                                    <span>{vehicle.mileage?.toLocaleString()} km</span>
+                                                    {vehicle.condition !== 'new' && (
+                                                        <span>{vehicle.mileage?.toLocaleString()} km</span>
+                                                    )}
                                                 </div>
                                             </div>
                                         </div>
@@ -316,13 +318,13 @@ export default function Vehicles() {
                                                 </p>
                                             )}
                                         </div>
-                                        <div className="grid grid-cols-2 gap-x-2 gap-y-1 text-sm text-gray-500 mt-2">
-                                            <div className="flex items-center justify-between">
-                                                <span className="text-xs text-muted-foreground">Fuel</span>
+                                        <div className="grid grid-cols-2 gap-x-2 gap-y-1 text-sm text-muted-foreground mt-2">
+                                            <div className="flex items-center gap-2">
+                                                <span className="text-xs text-muted-foreground">Fuel : </span>
                                                 <span className="font-medium capitalize">{vehicle.fuelType}</span>
                                             </div>
-                                            <div className="flex items-center justify-between">
-                                                <span className="text-xs text-muted-foreground">Trans</span>
+                                            <div className="flex items-center gap-2">
+                                                <span className="text-xs text-muted-foreground font-weight-700">Trans : </span>
                                                 <span className="font-medium capitalize">{vehicle.transmission || 'Manual'}</span>
                                             </div>
                                         </div>

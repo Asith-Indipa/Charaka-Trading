@@ -28,7 +28,14 @@ const PERMISSIONS = {
     USER_DELETE: 'user_delete',
 
     // Analytics
-    ANALYTICS_VIEW: 'analytics_view'
+    ANALYTICS_VIEW: 'analytics_view',
+
+    // Employees
+    EMPLOYEE_VIEW: 'employee_view',
+    EMPLOYEE_CREATE: 'employee_create',
+    EMPLOYEE_EDIT: 'employee_edit',
+    EMPLOYEE_DELETE: 'employee_delete',
+    EMPLOYEE_SALARY_MANAGE: 'employee_salary_manage'
 };
 
 const ROLE_PERMISSIONS = {
@@ -43,7 +50,11 @@ const ROLE_PERMISSIONS = {
         PERMISSIONS.TRANSACTION_EDIT,
         PERMISSIONS.STORE_VIEW,
         PERMISSIONS.USER_VIEW,
-        PERMISSIONS.ANALYTICS_VIEW
+        PERMISSIONS.ANALYTICS_VIEW,
+        PERMISSIONS.EMPLOYEE_VIEW,
+        PERMISSIONS.EMPLOYEE_CREATE,
+        PERMISSIONS.EMPLOYEE_EDIT,
+        PERMISSIONS.EMPLOYEE_SALARY_MANAGE
     ],
     [ROLES.USER]: [
         PERMISSIONS.VEHICLE_VIEW
