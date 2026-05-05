@@ -41,7 +41,7 @@ export default function Dashboard() {
     // Extract dashboard statistics from statsData object for easy use in UI
 
     const {
-        totalRevenue, // This is Net Sales
+        totalRevenue,
         grossSales,
         totalDiscounts,
         purchaseRevenue,
