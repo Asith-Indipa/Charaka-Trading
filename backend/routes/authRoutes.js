@@ -1,6 +1,6 @@
 const express = require('express');
 const router = express.Router();
-const { register, login, getMe, getUsers, createUser, updateUser, deleteUser } = require('../controllers/authController');
+const { register, login, getMe, getUsers, createUser, updateUser, deleteUser, updateProfile } = require('../controllers/authController');
 const { authenticateToken, checkPermission } = require('../middleware/authMiddleware');
 const { PERMISSIONS } = require('../constants/roles');
 const { body } = require('express-validator');
@@ -25,6 +25,7 @@ router.post('/login', loginValidation, login);
 
 // Protected routes
 router.get('/me', authenticateToken, getMe);
+router.put('/profile', authenticateToken, updateProfile);
 
 // Admin/Moderator routes
 router.get('/users', authenticateToken, checkPermission(PERMISSIONS.USER_VIEW), getUsers);

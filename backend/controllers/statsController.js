@@ -341,12 +341,12 @@ const getDetailedAnalytics = async (req, res) => {
         });
 
         const totalProfitResult = await Transaction.aggregate([
-            { $match: { type: 'sale', status: 'completed' } },
+            { $match: { ...dateFilter, type: 'sale', status: 'completed' } },
             { $group: { _id: null, total: { $sum: '$calculatedProfit' } } }
         ])
         //console.log(totalProfitResult);
 
-        const netProfit = totalProfitResult[0].total;
+        const netProfit = totalProfitResult.length > 0 ? totalProfitResult[0].total : 0;
 
         // 6. Vehicle Inventory Turnover
         const totalVehicles = await Vehicle.countDocuments();
