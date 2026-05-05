@@ -1,0 +1,393 @@
+{
+    "info": {
+        "name": "Charaka Trading API",
+        "description": "Vehicle Lifecycle & Transaction Management",
+        "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+    },
+    "variable": [
+        {
+            "key": "baseUrl",
+            "value": "http://localhost:5000/api"
+        },
+        {
+            "key": "token",
+            "value": ""
+        }
+    ],
+    "item": [
+        {
+            "name": "Auth",
+            "item": [
+                {
+                    "name": "Register Admin",
+                    "request": {
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            }
+                        ],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n  \"username\": \"admin\",\n  \"email\": \"admin@charaka.com\",\n  \"password\": \"admin123\",\n  \"role\": \"admin\",\n  \"firstName\": \"Admin\",\n  \"lastName\": \"User\"\n}"
+                        },
+                        "url": {
+                            "raw": "{{baseUrl}}/auth/register",
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "path": [
+                                "auth",
+                                "register"
+                            ]
+                        }
+                    }
+                },
+                {
+                    "name": "Login",
+                    "request": {
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            }
+                        ],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n  \"email\": \"admin@charaka.com\",\n  \"password\": \"admin123\"\n}"
+                        },
+                        "url": {
+                            "raw": "{{baseUrl}}/auth/login",
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "path": [
+                                "auth",
+                                "login"
+                            ]
+                        }
+                    }
+                },
+                {
+                    "name": "Get Profile",
+                    "request": {
+                        "method": "GET",
+                        "header": [
+                            {
+                                "key": "Authorization",
+                                "value": "Bearer {{token}}"
+                            }
+                        ],
+                        "url": {
+                            "raw": "{{baseUrl}}/auth/me",
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "path": [
+                                "auth",
+                                "me"
+                            ]
+                        }
+                    }
+                }
+            ]
+        },
+        {
+            "name": "Vehicles",
+            "item": [
+                {
+                    "name": "Get All Vehicles",
+                    "request": {
+                        "method": "GET",
+                        "header": [],
+                        "url": {
+                            "raw": "{{baseUrl}}/vehicles?status=available",
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "path": [
+                                "vehicles"
+                            ],
+                            "query": [
+                                {
+                                    "key": "status",
+                                    "value": "available"
+                                }
+                            ]
+                        }
+                    }
+                },
+                {
+                    "name": "Add New Vehicle",
+                    "request": {
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "Authorization",
+                                "value": "Bearer {{token}}"
+                            }
+                        ],
+                        "body": {
+                            "mode": "formdata",
+                            "formdata": [
+                                {
+                                    "key": "vehicleNumber",
+                                    "value": "VH-2024-001",
+                                    "type": "text"
+                                },
+                                {
+                                    "key": "chassisNumber",
+                                    "value": "CH123456789",
+                                    "type": "text"
+                                },
+                                {
+                                    "key": "engineNumber",
+                                    "value": "EN987654321",
+                                    "type": "text"
+                                },
+                                {
+                                    "key": "brand",
+                                    "value": "Toyota",
+                                    "type": "text"
+                                },
+                                {
+                                    "key": "model",
+                                    "value": "Camry",
+                                    "type": "text"
+                                },
+                                {
+                                    "key": "year",
+                                    "value": "2024",
+                                    "type": "text"
+                                },
+                                {
+                                    "key": "price",
+                                    "value": "35000",
+                                    "type": "text"
+                                },
+                                {
+                                    "key": "condition",
+                                    "value": "new",
+                                    "type": "text"
+                                },
+                                {
+                                    "key": "description",
+                                    "value": "Brand new Toyota Camry",
+                                    "type": "text"
+                                },
+                                {
+                                    "key": "fuelType",
+                                    "value": "petrol",
+                                    "type": "text"
+                                },
+                                {
+                                    "key": "transmission",
+                                    "value": "automatic",
+                                    "type": "text"
+                                }
+                            ]
+                        },
+                        "url": {
+                            "raw": "{{baseUrl}}/vehicles/new",
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "path": [
+                                "vehicles",
+                                "new"
+                            ]
+                        }
+                    }
+                },
+                {
+                    "name": "Re-list Vehicle",
+                    "request": {
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "Authorization",
+                                "value": "Bearer {{token}}"
+                            }
+                        ],
+                        "body": {
+                            "mode": "formdata",
+                            "formdata": [
+                                {
+                                    "key": "price",
+                                    "value": "32000",
+                                    "type": "text"
+                                },
+                                {
+                                    "key": "condition",
+                                    "value": "used",
+                                    "type": "text"
+                                },
+                                {
+                                    "key": "description",
+                                    "value": "Well maintained, re-listed",
+                                    "type": "text"
+                                },
+                                {
+                                    "key": "mileage",
+                                    "value": "5000",
+                                    "type": "text"
+                                }
+                            ]
+                        },
+                        "url": {
+                            "raw": "{{baseUrl}}/vehicles/:id/relist",
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "path": [
+                                "vehicles",
+                                ":id",
+                                "relist"
+                            ],
+                            "variable": [
+                                {
+                                    "key": "id",
+                                    "value": "VEHICLE_ID_HERE"
+                                }
+                            ]
+                        }
+                    }
+                },
+                {
+                    "name": "Quick-add from Transaction",
+                    "request": {
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "Authorization",
+                                "value": "Bearer {{token}}"
+                            }
+                        ],
+                        "body": {
+                            "mode": "formdata",
+                            "formdata": [
+                                {
+                                    "key": "price",
+                                    "value": "30000",
+                                    "type": "text"
+                                },
+                                {
+                                    "key": "condition",
+                                    "value": "used",
+                                    "type": "text"
+                                },
+                                {
+                                    "key": "description",
+                                    "value": "Re-listed from transaction",
+                                    "type": "text"
+                                }
+                            ]
+                        },
+                        "url": {
+                            "raw": "{{baseUrl}}/vehicles/from-transaction/:transactionId",
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "path": [
+                                "vehicles",
+                                "from-transaction",
+                                ":transactionId"
+                            ],
+                            "variable": [
+                                {
+                                    "key": "transactionId",
+                                    "value": "TRANSACTION_ID_HERE"
+                                }
+                            ]
+                        }
+                    }
+                }
+            ]
+        },
+        {
+            "name": "Transactions",
+            "item": [
+                {
+                    "name": "Create Transaction",
+                    "request": {
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "Authorization",
+                                "value": "Bearer {{token}}"
+                            },
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            }
+                        ],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n  \"vehicleId\": \"VEHICLE_ID_HERE\",\n  \"buyer\": {\n    \"name\": \"John Doe\",\n    \"email\": \"john@example.com\",\n    \"phone\": \"+1234567890\",\n    \"address\": \"123 Main St, City\"\n  },\n  \"salePrice\": 35000,\n  \"discount\": 1000,\n  \"paymentMethod\": \"bank_transfer\",\n  \"paymentStatus\": \"completed\"\n}"
+                        },
+                        "url": {
+                            "raw": "{{baseUrl}}/transactions",
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "path": [
+                                "transactions"
+                            ]
+                        }
+                    }
+                },
+                {
+                    "name": "Get All Transactions",
+                    "request": {
+                        "method": "GET",
+                        "header": [
+                            {
+                                "key": "Authorization",
+                                "value": "Bearer {{token}}"
+                            }
+                        ],
+                        "url": {
+                            "raw": "{{baseUrl}}/transactions",
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "path": [
+                                "transactions"
+                            ]
+                        }
+                    }
+                },
+                {
+                    "name": "Get Transaction by ID",
+                    "request": {
+                        "method": "GET",
+                        "header": [
+                            {
+                                "key": "Authorization",
+                                "value": "Bearer {{token}}"
+                            }
+                        ],
+                        "url": {
+                            "raw": "{{baseUrl}}/transactions/:id",
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "path": [
+                                "transactions",
+                                ":id"
+                            ],
+                            "variable": [
+                                {
+                                    "key": "id",
+                                    "value": "TRANSACTION_ID_HERE"
+                                }
+                            ]
+                        }
+                    }
+                }
+            ]
+        }
+    ]
+}
