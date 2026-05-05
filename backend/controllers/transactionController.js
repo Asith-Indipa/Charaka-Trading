@@ -1,5 +1,6 @@
 const Transaction = require('../models/Transaction');
 const Vehicle = require('../models/Vehicle');
+const NewVehicle = require('../models/NewVehicle');
 const StoreInfo = require('../models/StoreInfo');
 
 // @desc    Create new transaction
@@ -58,7 +59,8 @@ const createTransaction = async (req, res) => {
                 condition: vehicle.condition,
                 price: vehicle.price,
                 description: vehicle.description,
-                images: vehicle.images
+                images: vehicle.images,
+                addedVehicleValue:vehicle.originalPrice || 0
             };
 
             let storeInfo = await StoreInfo.findOne();
@@ -96,6 +98,15 @@ const createTransaction = async (req, res) => {
 
         } else {
             // --- SALE FLOW (Existing Logic) ---
+            // Check if this is a Brand New vehicle (which are not allowed in transactions)
+            const isBrandNew = await NewVehicle.findById(vehicleId);
+            if (isBrandNew) {
+                return res.status(400).json({
+                    success: false,
+                    message: 'Transactions are not supported for Brand New vehicles. Use the standard inventory listing for display only.'
+                });
+            }
+
             vehicle = await Vehicle.findById(vehicleId);
 
             if (!vehicle) {
@@ -155,11 +166,12 @@ const createTransaction = async (req, res) => {
                 financeDetails, // Add this
                 notes,
                 status: 'pending',
-                createdBy: req.user._id
+                createdBy: req.user._id,
+                calculatedProfit: vehicle.calculatedProfit
             });
 
             // Update vehicle status
-            vehicle.status = 'archived';
+            vehicle.status = 'sold';
             vehicle.soldAt = new Date();
             await vehicle.save();
 
@@ -251,26 +263,12 @@ const getTransaction = async (req, res) => {
 const updateTransaction = async (req, res) => {
     try {
         const transaction = await Transaction.findById(req.params.id);
-        const vehicle = await Vehicle.findById(transaction.vehicleSnapshot.vehicleId);
 
         if (!transaction) {
             return res.status(404).json({
                 success: false,
                 message: 'Transaction not found'
             });
-        }
-
-        if (!vehicle) {
-            return res.status(404).json({
-                success: false,
-                message: 'Vehicle not found'
-            });
-        }
-
-        if (transaction.type === 'sale') {
-            vehicle.status = 'sold';
-            vehicle.listedAt = new Date();
-            await vehicle.save();
         }
 
         // Fields that can be updated

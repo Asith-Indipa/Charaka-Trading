@@ -1,25 +1,6 @@
 const mongoose = require('mongoose');
 
-const vehicleSchema = new mongoose.Schema({
-    // Unique identifiers
-    vehicleNumber: {
-        type: String,
-        required: true,
-        unique: true,
-        trim: true
-    },
-    chassisNumber: {
-        type: String,
-        required: true,
-        unique: true,
-        trim: true
-    },
-    engineNumber: {
-        type: String,
-        required: true,
-        trim: true
-    },
-
+const newVehicleSchema = new mongoose.Schema({
     // Lifecycle management
     status: {
         type: String,
@@ -48,16 +29,6 @@ const vehicleSchema = new mongoose.Schema({
         type: String,
         trim: true
     },
-    mileage: {
-        type: Number,
-        min: 0
-    },
-    condition: {
-        type: String,
-        enum: ['new', 'used'],
-        required: true,
-        default: 'used'
-    },
     type: {
         type: String,
         enum: ['car', 'three-wheel', 'motorbike'],
@@ -78,43 +49,6 @@ const vehicleSchema = new mongoose.Schema({
     price: {
         type: Number,
         required: true,
-        min: 0
-    },
-    originalPrice: {
-        type: Number,
-        min: 0
-    },
-    purchaseCost: {
-        type: Number,
-        min: 0,
-        default: 0
-    },
-    profitMarginType: {
-        type: String,
-        enum: ['percentage', 'fixed'],
-        default: 'percentage'
-    },
-    profitMarginValue: {
-        type: Number,
-        min: 0,
-        default: 0
-    },
-    calculatedProfit: {
-        type: Number,
-        default: 0
-    },
-    discountType: {
-        type: String,
-        enum: ['none', 'percentage', 'fixed'],
-        default: 'none'
-    },
-    discountValue: {
-        type: Number,
-        min: 0,
-        default: 0
-    },
-    discountedPrice: {
-        type: Number,
         min: 0
     },
 
@@ -151,16 +85,6 @@ const vehicleSchema = new mongoose.Schema({
         min: 1
     },
 
-    // Re-listing reference
-    originalVehicleId: {
-        type: mongoose.Schema.Types.ObjectId,
-        ref: 'Vehicle',
-        default: null
-    },
-    relistCount: {
-        type: Number,
-        default: 0
-    },
 
     // Audit fields
     listedBy: {
@@ -183,25 +107,25 @@ const vehicleSchema = new mongoose.Schema({
     },
     bookingPercentage: {
         type: Number,
-        default: null // null means use default store percentage
+        default: null
     }
 }, {
     timestamps: true
 });
 
 // Indexes for faster queries
-vehicleSchema.index({ status: 1, condition: 1 });
-vehicleSchema.index({ brand: 1, model: 1 });
+newVehicleSchema.index({ status: 1, condition: 1 });
+newVehicleSchema.index({ brand: 1, model: 1 });
 
 
 
 // Virtual for listing ID
-vehicleSchema.virtual('listingId').get(function () {
+newVehicleSchema.virtual('listingId').get(function () {
     return `VL-${this._id}`;
 });
 
 // Ensure virtuals are included in JSON
-vehicleSchema.set('toJSON', { virtuals: true });
-vehicleSchema.set('toObject', { virtuals: true });
+newVehicleSchema.set('toJSON', { virtuals: true });
+newVehicleSchema.set('toObject', { virtuals: true });
 
-module.exports = mongoose.model('Vehicle', vehicleSchema);
+module.exports = mongoose.model('NewVehicle', newVehicleSchema);
