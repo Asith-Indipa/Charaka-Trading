@@ -1,6 +1,7 @@
 // This component provides an interface for managing users in the admin dashboard. It allows administrators to view a list of users, search and filter them, and perform actions such as creating new users, activating/deactivating accounts, changing roles, and deleting users. The component uses React Query for data fetching and mutations, React Hook Form for form handling, and various UI components for a consistent design. Permissions are checked to ensure that only authorized users can perform certain actions.you can go path is Dashboard > Users
 
 
+
 import { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useForm } from 'react-hook-form';
@@ -57,9 +58,9 @@ import {
     UserCheck,
     UserX,
     ShieldCheck,
-    Search,
-    Loader2
+    Search
 } from "lucide-react";
+import { Loader, PageLoader } from "@/components/common/Loader";
 import { useAuth } from '@/context/AuthContext';
 import { PERMISSIONS } from '@/utils/roles';
 
@@ -73,7 +74,6 @@ export default function Users() {
 
     const form = useForm({
         defaultValues: {
-            username: '',
             email: '',
             password: '',
             role: 'moderator',
@@ -139,11 +139,7 @@ export default function Users() {
         createUserMutation.mutate(values);
     };
 
-    if (isLoading) return (
-        <div className="flex h-[400px] items-center justify-center">
-            <Loader2 className="h-8 w-8 animate-spin text-primary" />
-        </div>
-    );
+    if (isLoading) return <PageLoader text="Loading user management..." />;
 
     if (error) return (
         <div className="p-8 text-center text-red-500 border-2 border-dashed border-red-200 rounded-lg">
@@ -153,8 +149,9 @@ export default function Users() {
     );
 
     const filteredUsers = users?.filter(user => {
-        const matchesSearch = user.username.toLowerCase().includes(searchTerm.toLowerCase()) ||
-            user.email.toLowerCase().includes(searchTerm.toLowerCase());
+        const matchesSearch = user.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
+            (user.firstName && user.firstName.toLowerCase().includes(searchTerm.toLowerCase())) ||
+            (user.lastName && user.lastName.toLowerCase().includes(searchTerm.toLowerCase()));
 
         const matchesRole = roleFilter === 'all' || user.role === roleFilter;
         const matchesStatus = statusFilter === 'all' ||
@@ -222,21 +219,7 @@ export default function Users() {
                                 </DialogHeader>
                                 <Form {...form}>
                                     <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4 py-4">
-                                        <div className="grid grid-cols-2 gap-4">
-                                            <FormField
-                                                control={form.control}
-                                                name="username"
-                                                rules={{ required: 'Username is required' }}
-                                                render={({ field }) => (
-                                                    <FormItem>
-                                                        <FormLabel>Username *</FormLabel>
-                                                        <FormControl>
-                                                            <Input placeholder="johndoe" {...field} />
-                                                        </FormControl>
-                                                        <FormMessage />
-                                                    </FormItem>
-                                                )}
-                                            />
+                                        <div className="grid grid-cols-1 gap-4">
                                             <FormField
                                                 control={form.control}
                                                 name="email"
@@ -345,7 +328,7 @@ export default function Users() {
                             <TableRow key={user._id} className="hover:bg-muted/30 transition-colors">
                                 <TableCell>
                                     <div className="flex flex-col">
-                                        <span className="font-semibold text-foreground">{user.username}</span>
+                                        <span className="font-semibold text-foreground">{user.email}</span>
                                         <span className="text-xs text-muted-foreground">{user.firstName} {user.lastName}</span>
                                     </div>
                                 </TableCell>
