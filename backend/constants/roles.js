@@ -9,7 +9,7 @@ const PERMISSIONS = {
     VEHICLE_VIEW: 'vehicle_view',
     VEHICLE_CREATE: 'vehicle_create',
     VEHICLE_EDIT: 'vehicle_edit',
-    VEHICLE_RELIST: 'vehicle_relist',
+    // VEHICLE_RELIST: 'vehicle_relist',
     VEHICLE_DELETE: 'vehicle_delete',
 
     // Transactions

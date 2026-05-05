@@ -39,8 +39,8 @@ export default function Settings() {
                     {can(PERMISSIONS.USER_CREATE) && (
                         <TabsTrigger value="permissions">Permissions</TabsTrigger>
                     )}
-                    <TabsTrigger value="appearance">Appearance</TabsTrigger>
-                    <TabsTrigger value="notifications">Notifications</TabsTrigger>
+                    {/* <TabsTrigger value="appearance">Appearance</TabsTrigger>
+                    <TabsTrigger value="notifications">Notifications</TabsTrigger> */}
                 </TabsList>
 
                 <TabsContent value="account">
@@ -79,7 +79,7 @@ export default function Settings() {
                     </TabsContent>
                 )}
 
-                <TabsContent value="appearance">
+                {/* <TabsContent value="appearance">
                     <Card>
                         <CardHeader>
                             <CardTitle>Appearance</CardTitle>
@@ -112,7 +112,7 @@ export default function Settings() {
                             </p>
                         </CardContent>
                     </Card>
-                </TabsContent>
+                </TabsContent> */}
             </Tabs>
         </div>
     )
