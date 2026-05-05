@@ -1,3 +1,6 @@
+// This component displays a 404 Not Found page with a modern, user-friendly design. It includes a prominent "Lost in Transit?" heading, a visually appealing icon, and helpful navigation options to guide users back to the homepage or vehicle listings. This page is shown when a user tries to access a route that doesn't exist in the application.
+
+
 import { useNavigate } from 'react-router-dom';
 import { Button } from "@/components/ui/button";
 import { Search, Map, Home, Compass } from "lucide-react";

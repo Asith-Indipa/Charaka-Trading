@@ -7,14 +7,16 @@ const {
     relistVehicle,
     addFromTransaction,
     updateVehicle,
-    archiveVehicle
+    archiveVehicle,
+    addNewBrandVehicle
 } = require('../controllers/vehicleController');
 const { authenticateToken, checkPermission } = require('../middleware/authMiddleware');
 const { PERMISSIONS } = require('../constants/roles');
 const {
     validateNewVehicle,
     validateRelistVehicle,
-    validateFromTransaction
+    validateFromTransaction,
+    validateBrandNewVehicle
 } = require('../middleware/validationMiddleware');
 const upload = require('../utils/imageUpload');
 
@@ -52,6 +54,15 @@ router.post(
     upload.array('images', 10),
     validateFromTransaction,
     addFromTransaction
+);
+
+router.post(
+    '/new-vehicle',
+    authenticateToken,
+    checkPermission(PERMISSIONS.VEHICLE_CREATE),
+    upload.array('images', 10),
+    validateBrandNewVehicle,
+    addNewBrandVehicle // Match the controller name
 );
 
 router.patch(

@@ -1,6 +1,11 @@
+// This component displays detailed information about a specific vehicle in the admin panel.
+//this page you can see when click Dashboard > Manage Vehicles > Details (click on eye icon)
+
+
 import { useParams, useNavigate, Link } from 'react-router-dom';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import api from '@/api/axios';
+import { getImageUrl } from '@/lib/image';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -126,7 +131,7 @@ export default function AdminVehicleDetails() {
                         <div className="aspect-video relative bg-slate-50">
                             {images.length > 0 ? (
                                 <img
-                                    src={`http://localhost:5000${images[selectedImage]}`}
+                                    src={getImageUrl(images[selectedImage])}
                                     alt="Vehicle"
                                     className="object-contain w-full h-full p-4"
                                 />
@@ -147,7 +152,7 @@ export default function AdminVehicleDetails() {
                                                 }`}
                                         >
                                             <img
-                                                src={`http://localhost:5000${img}`}
+                                                src={getImageUrl(img)}
                                                 alt={`Thumbnail ${index + 1}`}
                                                 className="object-cover w-full h-full"
                                             />
@@ -185,7 +190,7 @@ export default function AdminVehicleDetails() {
                                     <User className="h-5 w-5 text-muted-foreground mt-0.5" />
                                     <div>
                                         <p className="text-sm font-medium">Added By</p>
-                                        <p className="text-sm text-muted-foreground">{vehicle.listedBy?.username} ({vehicle.listedBy?.email || 'No email'})</p>
+                                        <p className="text-sm text-muted-foreground">{vehicle.listedBy?.email || 'Unknown'}</p>
                                     </div>
                                 </div>
                                 <div className="flex items-start gap-3">

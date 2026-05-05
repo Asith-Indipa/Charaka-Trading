@@ -1,3 +1,5 @@
+//this page you can see when click on login or register button, it will show the form to login or register, and after login or register successfully, it will redirect to home page, and you can see the user info in the header, and you can click on logout button to logout, and after logout, it will redirect to home page again
+
 
 import { createContext, useContext, useState, useEffect } from 'react';
 import api from '@/api/axios';

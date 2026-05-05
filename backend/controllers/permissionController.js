@@ -6,13 +6,20 @@ let permissionsCache = null;
 
 // Helper to get effective mappings
 const getEffectiveMappings = async () => {
-    // If you want real-time from DB every time, skip cache or use TTL
     const dbMappings = await RolePermission.find();
 
-    const mapping = { ...CONSTANT_MAPPING };
+    // Start with static defaults
+    const mapping = {};
+    Object.keys(CONSTANT_MAPPING).forEach(role => {
+        mapping[role] = [...(CONSTANT_MAPPING[role] || [])];
+    });
 
+    // Union DB values with static defaults so newly added permissions
+    // in constants/roles.js are always present even if the DB has a stale mapping
     dbMappings.forEach(item => {
-        mapping[item.role] = item.permissions;
+        const staticPerms = CONSTANT_MAPPING[item.role] || [];
+        const dbPerms = item.permissions || [];
+        mapping[item.role] = Array.from(new Set([...staticPerms, ...dbPerms]));
     });
 
     return mapping;

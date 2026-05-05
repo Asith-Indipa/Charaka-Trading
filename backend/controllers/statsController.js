@@ -14,11 +14,11 @@ const getDashboardStats = async (req, res) => {
         ]);
         const purchaseRevenue = purchaseRevenueResult.length > 0 ? purchaseRevenueResult[0].total : 0;
 
-        //Total Profit of all solde vehicle
-        const totalProfitResult = await Transaction.aggregate([
+        // Total Profit of all sold vehicles (calculatedProfit lives on Vehicle, not Transaction)
+        const totalProfitResult = await Vehicle.aggregate([
             { $match: { status: 'sold' } },
-            { $group: { _id: null, total: { $sum: '$calculatedProfit' } } }
-        ])
+            { $group: { _id: null, total: { $sum: { $ifNull: ['$calculatedProfit', 0] } } } }
+        ]);
         const totalProfit = totalProfitResult.length > 0 ? totalProfitResult[0].total : 0;
 
         // 2. Calculate Sale Revenue (sum of completed sale transactions)
@@ -328,7 +328,14 @@ const getDetailedAnalytics = async (req, res) => {
             }
         });
 
-        const netProfit = saleTotal - saleCostTotal;
+        //const netProfit = saleTotal - saleCostTotal;
+
+        const netProfitResult = await Vehicle.aggregate([
+            { $match: { status: 'sold' } },
+            { $group: { _id: null, total: { $sum: { $ifNull: ['$calculatedProfit', 0] } } } }
+        ]);
+
+        const netProfit = netProfitResult.length > 0 ? netProfitResult[0].total : 0;
 
         // 6. Vehicle Inventory Turnover
         const totalVehicles = await Vehicle.countDocuments();

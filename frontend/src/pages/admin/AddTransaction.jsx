@@ -1,5 +1,14 @@
+// this page is for adding new transaction for vehicles ("transaction") and this page is for both "sale" and "purchase" //
+// This page will handle the payment method of the transaction //  And the Finance Details of the transaction // this page is very important for the admin to manage the vehicles // 
+// this page you can see when click Dashboard > New Transaction
 
-import { useState } from 'react';
+// - The Sale tab lets you select an existing vehicle (by registration or chassis)
+// - The Purchase tab lets you enter vehicle details (brand , make, model, year, numbers, chassis, engine, etc .) to create a new vehicle
+// - Both modes allow you to select the payment method: Cash, Finance, Cheque, or Mixed
+// - Finance mode shows additional fields for finance details
+// - After successful submission, the vehicle is either sold (if existing) or created and added to the database (if new)
+
+import { useState, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import api from '@/api/axios';
@@ -22,8 +31,11 @@ import {
 } from "@/components/ui/select";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { useForm } from 'react-hook-form';
-import { ArrowLeft, Loader2, Check, ShoppingCart, Tag } from 'lucide-react';
+import { ArrowLeft, Check, ShoppingCart, Tag } from 'lucide-react';
+import { Loader, PageLoader } from "@/components/common/Loader";
 import { toast } from "sonner";
+import { getImageUrl } from '@/lib/image';
+import VehicleSearchDropdown from '@/components/common/VehicleSearchDropdown';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 export default function AddTransaction() {
@@ -36,11 +48,12 @@ export default function AddTransaction() {
         queryKey: ['vehicles'],
         queryFn: async () => {
             const res = await api.get('/vehicles');
-            return res.data.data.filter(v => v.status === 'available');
+            return res.data.data.filter(v => v.status === 'available' || v.status === 'booked');
         },
         enabled: mode === 'sale'
     });
 
+    //this is for form for both sale and purchase
     const form = useForm({
         defaultValues: {
             // Common
@@ -71,9 +84,16 @@ export default function AddTransaction() {
             vehicleNumber: '', // Stock/Plate
             chassisNumber: '',
             engineNumber: '',
+            vehicleType: 'car',
             condition: 'used',
             mileage: '',
             color: '',
+            transmission: '',
+            fuelType: '',
+            bodyType: '',
+            seatingCapacity: '',
+            engineCapacity: '',
+            bikeType: '',
 
             // Finance Specific
             financeName: '',
@@ -87,6 +107,8 @@ export default function AddTransaction() {
             transactionId: ''
         }
     });
+
+    // this is for creating transaction sale and purchase 
 
     const createTransaction = useMutation({
         mutationFn: async (data) => {
@@ -123,13 +145,20 @@ export default function AddTransaction() {
                         brand: data.brand,
                         model: data.model,
                         year: parseInt(data.year),
+                        type: data.vehicleType || 'car',
                         vehicleNumber: data.vehicleNumber,
                         chassisNumber: data.chassisNumber,
                         engineNumber: data.engineNumber,
                         condition: data.condition,
                         mileage: parseInt(data.mileage) || 0,
                         color: data.color,
-                        price: parseFloat(data.salePrice)
+                        price: parseFloat(data.salePrice),
+                        transmission: data.transmission || undefined,
+                        fuelType: data.fuelType || undefined,
+                        bodyType: data.bodyType || undefined,
+                        seatingCapacity: parseInt(data.seatingCapacity) || undefined,
+                        engineCapacity: data.engineCapacity || undefined,
+                        bikeType: data.bikeType || undefined,
                     }
                 };
             }
@@ -170,6 +199,7 @@ export default function AddTransaction() {
         createTransaction.mutate(data);
     };
 
+    //calculate discount amount 
     const handleVehicleChange = (vehicleId) => {
         form.setValue('vehicleId', vehicleId);
         const selectedVehicle = vehiclesData?.find(v => v._id === vehicleId);
@@ -200,6 +230,9 @@ export default function AddTransaction() {
                     <TabsTrigger value="sale" className="text-lg py-3"><Tag className="mr-2 w-4 h-4" /> Sell Vehicle</TabsTrigger>
                     <TabsTrigger value="purchase" className="text-lg py-3"><ShoppingCart className="mr-2 w-4 h-4" /> Buy Vehicle (Inventory)</TabsTrigger>
                 </TabsList>
+
+
+                {/* This is for sale  */}
 
                 <TabsContent value="sale">
                     <Card>
@@ -241,7 +274,7 @@ export default function AddTransaction() {
                                         <div className="h-16 w-24 bg-muted rounded overflow-hidden flex-shrink-0">
                                             {vehiclesData?.find(v => v._id === form.watch('vehicleId'))?.images?.[0] ? (
                                                 <img
-                                                    src={`http://localhost:5000${vehiclesData.find(v => v._id === form.watch('vehicleId')).images[0]}`}
+                                                    src={getImageUrl(vehiclesData.find(v => v._id === form.watch('vehicleId')).images[0])}
                                                     alt="Vehicle"
                                                     className="h-full w-full object-cover"
                                                 />
@@ -285,6 +318,8 @@ export default function AddTransaction() {
                     </Card>
                 </TabsContent>
 
+                {/* This is for purchase  */}
+
                 <TabsContent value="purchase">
                     <Card>
                         <CardHeader>
@@ -322,20 +357,24 @@ export default function AddTransaction() {
                             {/* Vehicle Details */}
                             <div className="space-y-4">
                                 <h3 className="font-semibold text-sm uppercase tracking-wide text-muted-foreground">Vehicle Details</h3>
-                                <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
-                                    <div className="space-y-2">
-                                        <label className="text-sm font-medium">Brand *</label>
-                                        <Input {...form.register('brand', { required: mode === 'purchase' })} placeholder="e.g. Toyota" />
-                                    </div>
-                                    <div className="space-y-2">
-                                        <label className="text-sm font-medium">Model *</label>
-                                        <Input {...form.register('model', { required: mode === 'purchase' })} placeholder="e.g. Camry" />
-                                    </div>
-                                    <div className="space-y-2">
-                                        <label className="text-sm font-medium">Year *</label>
-                                        <Input type="number" {...form.register('year', { required: mode === 'purchase' })} />
-                                    </div>
-                                </div>
+
+                                {/*Vehicle details selector: loads current form values into the dropdown 
+                                 and updates vehicleType, brand, model, and year in the form when changed */}
+
+                                <VehicleSearchDropdown
+                                    value={{
+                                        type: form.watch('vehicleType') || 'car',
+                                        brand: form.watch('brand') || '',
+                                        model: form.watch('model') || '',
+                                        year: form.watch('year') || new Date().getFullYear(),
+                                    }}
+                                    onChange={(val) => {
+                                        form.setValue('vehicleType', val.type);
+                                        form.setValue('brand', val.brand);
+                                        form.setValue('model', val.model);
+                                        form.setValue('year', val.year);
+                                    }}
+                                />
                                 <div className="grid grid-cols-2 gap-4">
                                     <div className="space-y-2">
                                         <label className="text-sm font-medium">VIN / Chassis No. *</label>
@@ -360,6 +399,96 @@ export default function AddTransaction() {
                                         <Input {...form.register('color')} />
                                     </div>
                                 </div>
+                            </div>
+
+                            <Separator className="my-4" />
+
+                            {/* Technical Specs */}
+                            <div className="space-y-4">
+                                <h3 className="font-semibold text-sm uppercase tracking-wide text-muted-foreground">Technical Specs</h3>
+                                <div className="grid grid-cols-2 gap-4">
+                                    <div className="space-y-2">
+                                        <label className="text-sm font-medium">Transmission</label>
+                                        <Select value={form.watch('transmission')} onValueChange={(val) => form.setValue('transmission', val)}>
+                                            <SelectTrigger>
+                                                <SelectValue placeholder="Transmission" />
+                                            </SelectTrigger>
+                                            <SelectContent>
+                                                <SelectItem value="automatic">Automatic</SelectItem>
+                                                <SelectItem value="manual">Manual</SelectItem>
+                                                <SelectItem value="cvt">CVT</SelectItem>
+                                                <SelectItem value="none">None</SelectItem>
+                                            </SelectContent>
+                                        </Select>
+                                    </div>
+                                    <div className="space-y-2">
+                                        <label className="text-sm font-medium">Fuel Type</label>
+                                        <Select value={form.watch('fuelType')} onValueChange={(val) => form.setValue('fuelType', val)}>
+                                            <SelectTrigger>
+                                                <SelectValue placeholder="Fuel Type" />
+                                            </SelectTrigger>
+                                            <SelectContent>
+                                                <SelectItem value="petrol">Petrol</SelectItem>
+                                                <SelectItem value="diesel">Diesel</SelectItem>
+                                                <SelectItem value="hybrid">Hybrid</SelectItem>
+                                                <SelectItem value="electric">Electric</SelectItem>
+                                                <SelectItem value="none">None</SelectItem>
+                                            </SelectContent>
+                                        </Select>
+                                    </div>
+                                </div>
+
+                                {/* Car-specific fields */}
+                                {form.watch('vehicleType') === 'car' && (
+                                    <div className="grid grid-cols-2 gap-4 animate-in fade-in slide-in-from-top-2 duration-300">
+                                        <div className="space-y-2">
+                                            <label className="text-sm font-medium">Body Type</label>
+                                            <Select value={form.watch('bodyType')} onValueChange={(val) => form.setValue('bodyType', val)}>
+                                                <SelectTrigger>
+                                                    <SelectValue placeholder="Select type" />
+                                                </SelectTrigger>
+                                                <SelectContent>
+                                                    <SelectItem value="sedan">Sedan</SelectItem>
+                                                    <SelectItem value="hatchback">Hatchback</SelectItem>
+                                                    <SelectItem value="suv">SUV</SelectItem>
+                                                    <SelectItem value="van">Van</SelectItem>
+                                                    <SelectItem value="pickup">Pickup</SelectItem>
+                                                    <SelectItem value="none">None</SelectItem>
+                                                </SelectContent>
+                                            </Select>
+                                        </div>
+                                        <div className="space-y-2">
+                                            <label className="text-sm font-medium">Seating Capacity</label>
+                                            <Input type="number" {...form.register('seatingCapacity')} placeholder="e.g. 5" />
+                                        </div>
+                                    </div>
+                                )}
+
+                                {/* Three-wheel & Motorbike: Engine Capacity */}
+                                {(form.watch('vehicleType') === 'three-wheel' || form.watch('vehicleType') === 'motorbike') && (
+                                    <div className="space-y-2 animate-in fade-in slide-in-from-top-2 duration-300">
+                                        <label className="text-sm font-medium">Engine Capacity (cc)</label>
+                                        <Input {...form.register('engineCapacity')} placeholder="e.g. 150cc" />
+                                    </div>
+                                )}
+
+                                {/* Motorbike: Bike Type */}
+                                {form.watch('vehicleType') === 'motorbike' && (
+                                    <div className="space-y-2 animate-in fade-in slide-in-from-top-2 duration-300">
+                                        <label className="text-sm font-medium">Bike Type</label>
+                                        <Select value={form.watch('bikeType')} onValueChange={(val) => form.setValue('bikeType', val)}>
+                                            <SelectTrigger>
+                                                <SelectValue placeholder="Select type" />
+                                            </SelectTrigger>
+                                            <SelectContent>
+                                                <SelectItem value="commuter">Commuter Bike</SelectItem>
+                                                <SelectItem value="sport">Sport</SelectItem>
+                                                <SelectItem value="cruiser">Cruiser</SelectItem>
+                                                <SelectItem value="scooter">Scooter</SelectItem>
+                                            </SelectContent>
+                                        </Select>
+                                    </div>
+                                )}
                             </div>
                         </CardContent>
                     </Card>
@@ -481,7 +610,7 @@ export default function AddTransaction() {
                         Cancel
                     </Button>
                     <Button onClick={form.handleSubmit(onSubmit)} disabled={createTransaction.isPending}>
-                        {createTransaction.isPending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                        {createTransaction.isPending && <Loader size="sm" className="mr-2" />}
                         {mode === 'sale' ? 'Complete Sale' : 'Complete Purchase'}
                     </Button>
                 </div>

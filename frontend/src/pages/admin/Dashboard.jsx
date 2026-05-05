@@ -1,3 +1,8 @@
+// This is the main dashboard page for the admin panel. It provides an overview of key metrics and quick access to important sections.
+// This page you can see when click Dashboard in the admin sidebar.
+
+
+
 import { useQuery } from '@tanstack/react-query';
 import { Link } from 'react-router-dom';
 import axios from '@/api/axios';
@@ -9,10 +14,14 @@ import { Bar, BarChart, XAxis, YAxis, CartesianGrid } from 'recharts';
 import { ChartContainer, ChartTooltip, ChartTooltipContent, ChartLegend, ChartLegendContent } from "@/components/ui/chart";
 import { useAuth } from '@/context/AuthContext';
 import { PERMISSIONS } from '@/utils/roles';
+import { PageLoader } from '@/components/common/Loader';
 
 export default function Dashboard() {
     const { can } = useAuth();
-    // Fetch stats
+
+    // Fetch admin dashboard statistics from /stats API using React Query,
+    // and manage loading state, error handling, and caching with query key 'adminStats'
+
     const { data: statsData, isLoading, error } = useQuery({
         queryKey: ['adminStats'],
         queryFn: async () => {
@@ -22,15 +31,17 @@ export default function Dashboard() {
     });
 
     if (isLoading) {
-        return <div className="p-8 text-center">Loading dashboard data...</div>;
+        return <PageLoader text="Analysing your store performance..." />;
     }
 
     if (error) {
         return <div className="p-8 text-center text-red-500">Error loading dashboard: {error.message}</div>;
     }
 
+    // Extract dashboard statistics from statsData object for easy use in UI
+
     const {
-        totalRevenue, // This is Net Sales
+        totalRevenue,
         grossSales,
         totalDiscounts,
         purchaseRevenue,
@@ -49,6 +60,8 @@ export default function Dashboard() {
 
     const isProfitable = profitMargin >= 0;
 
+
+    // Render admin dashboard with revenue stats, charts, recent transactions, and quick action buttons
     return (
         <div className="flex-1 space-y-4 p-8 pt-6">
             <div className="flex items-center justify-between space-y-2">
@@ -91,7 +104,7 @@ export default function Dashboard() {
                     </CardHeader>
                     <CardContent>
                         <div className={`text-2xl font-bold ${isProfitable ? 'text-emerald-600' : 'text-red-600'}`}>
-                            {formatCurrency(statsData.avgProfit || 0)}
+                            {formatCurrency(statsData.totalProfit || 0)}
                         </div>
                         <p className="text-xs text-muted-foreground">
                             {isProfitable ? '+' : ''}{profitPercentage}% avg margin
