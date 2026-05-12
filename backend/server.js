@@ -2,6 +2,7 @@ require('dotenv').config();
 const express = require('express');
 const cors = require('cors');
 const connectDB = require('./config/db');
+const seedPermissions = require('./utils/seedPermissions');
 
 // Route imports
 const authRoutes = require('./routes/authRoutes');
@@ -16,8 +17,10 @@ const bookingRoutes = require('./routes/bookingRoutes');
 // Initialize express app
 const app = express();
 
-// Connect to database
-connectDB();
+// Connect to database and seed permissions
+connectDB().then(() => {
+    seedPermissions();
+});
 
 // Middleware
 app.use(cors());

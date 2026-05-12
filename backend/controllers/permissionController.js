@@ -4,22 +4,19 @@ const RolePermission = require('../models/RolePermission');
 // In-memory cache to avoid excessive DB hits
 let permissionsCache = null;
 
-// Helper to get effective mappings
+// Helper to get effective mappings (DB-first, fallback to static constants)
 const getEffectiveMappings = async () => {
     const dbMappings = await RolePermission.find();
 
-    // Start with static defaults
+    // Start with static defaults as fallback
     const mapping = {};
     Object.keys(CONSTANT_MAPPING).forEach(role => {
         mapping[role] = [...(CONSTANT_MAPPING[role] || [])];
     });
 
-    // Union DB values with static defaults so newly added permissions
-    // in constants/roles.js are always present even if the DB has a stale mapping
+    // Override with DB values for roles that exist in the DB
     dbMappings.forEach(item => {
-        const staticPerms = CONSTANT_MAPPING[item.role] || [];
-        const dbPerms = item.permissions || [];
-        mapping[item.role] = Array.from(new Set([...staticPerms, ...dbPerms]));
+        mapping[item.role] = item.permissions || [];
     });
 
     return mapping;
