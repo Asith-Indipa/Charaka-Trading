@@ -15,7 +15,7 @@ const { validateTransaction } = require('../middleware/validationMiddleware');
 router.use(authenticateToken);
 
 // Transaction routes
-router.post('/', checkPermission(PERMISSIONS.TRANSACTION_CREATE), validateTransaction, createTransaction);
+router.post('/', checkPermission(PERMISSIONS.TRANSACTION_CREATE), validateTransaction, createTransaction);   //Only give access to users who have permission.
 router.get('/', checkPermission(PERMISSIONS.TRANSACTION_VIEW), getTransactions);
 router.get('/:id', checkPermission(PERMISSIONS.TRANSACTION_VIEW), getTransaction);
 router.patch('/:id', checkPermission(PERMISSIONS.TRANSACTION_EDIT), updateTransaction);

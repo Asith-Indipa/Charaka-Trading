@@ -110,10 +110,10 @@ export default function AddTransaction() {
 
     // this is for creating transaction sale and purchase 
 
-    const createTransaction = useMutation({
+    const createTransaction = useMutation({   //POST request handle කරන mutation එක.
         mutationFn: async (data) => {
             let payload = {
-                type: mode,
+                type: mode,       //Send whether it is sale or purchase
                 salePrice: parseFloat(data.salePrice),
                 discount: parseFloat(data.discount) || 0,
                 paymentMethod: data.paymentMethod,
@@ -162,7 +162,7 @@ export default function AddTransaction() {
                     }
                 };
             }
-
+            //A finance object is created called a leasing payment.
             if (data.paymentMethod === 'finance') {
                 payload.financeDetails = {
                     financeName: data.financeName,
@@ -179,14 +179,14 @@ export default function AddTransaction() {
                     transactionId: data.transactionId
                 };
             }
-
+            //The transaction is saved to the backend.
             const res = await api.post('/transactions', payload);
             return res.data;
         },
-        onSuccess: () => {
+        onSuccess: () => {                                      //on success it will show a success message and navigate to the transactions page.
             toast.success(`Transaction (${mode}) completed successfully`);
-            queryClient.invalidateQueries(['transactions']);
-            queryClient.invalidateQueries(['vehicles']);
+            queryClient.invalidateQueries(['transactions']);              //transactions refresh.
+            queryClient.invalidateQueries(['vehicles']);                  //vehicles refresh.
             navigate('/admin/transactions');
         },
         onError: (error) => {
@@ -200,9 +200,9 @@ export default function AddTransaction() {
     };
 
     //calculate discount amount 
-    const handleVehicleChange = (vehicleId) => {
+    const handleVehicleChange = (vehicleId) => {   //Function that runs when a vehicle is selected.
         form.setValue('vehicleId', vehicleId);
-        const selectedVehicle = vehiclesData?.find(v => v._id === vehicleId);
+        const selectedVehicle = vehiclesData?.find(v => v._id === vehicleId); //Searching for the selected vehicle object.
         if (selectedVehicle) {
             form.setValue('salePrice', selectedVehicle.price.toString());
             // If the vehicle has a discounted price, calculate the discount amount
@@ -225,6 +225,7 @@ export default function AddTransaction() {
                 <p className="text-muted-foreground">Record a new vehicle sale or purchase.</p>
             </div>
 
+            {/*Tab selector for sale or purchase*/}
             <Tabs defaultValue="sale" value={mode} onValueChange={(v) => setMode(v)} className="w-full">
                 <TabsList className="grid w-full grid-cols-2 mb-8">
                     <TabsTrigger value="sale" className="text-lg py-3"><Tag className="mr-2 w-4 h-4" /> Sell Vehicle</TabsTrigger>
@@ -274,7 +275,7 @@ export default function AddTransaction() {
                                         <div className="h-16 w-24 bg-muted rounded overflow-hidden flex-shrink-0">
                                             {vehiclesData?.find(v => v._id === form.watch('vehicleId'))?.images?.[0] ? (
                                                 <img
-                                                    src={getImageUrl(vehiclesData.find(v => v._id === form.watch('vehicleId')).images[0])}
+                                                    src={getImageUrl(vehiclesData.find(v => v._id === form.watch('vehicleId')).images[0])}    //Displaying the image of the selected vehicle.
                                                     alt="Vehicle"
                                                     className="h-full w-full object-cover"
                                                 />

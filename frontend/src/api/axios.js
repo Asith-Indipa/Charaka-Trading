@@ -1,3 +1,5 @@
+//this file connect the frontend and backend
+
 
 import axios from 'axios';
 
@@ -32,7 +34,7 @@ api.interceptors.response.use(
             // localStorage.removeItem('token');
             // window.location.href = '/login';
         }
-        
+
         console.error('API Error:', {
             url: error.config?.url,
             method: error.config?.method,

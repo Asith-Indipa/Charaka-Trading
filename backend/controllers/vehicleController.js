@@ -19,8 +19,8 @@ const getVehicles = async (req, res) => {
             filter.status = { $in: ['available', 'booked'] };
         }
 
-        if (brand) filter.brand = new RegExp(brand, 'i');
-        
+        if (brand) filter.brand = new RegExp(brand, 'i');  //Search is case insensitive.
+
         // Price filter
         if (minPrice || maxPrice) {
             filter.price = {};
@@ -29,10 +29,12 @@ const getVehicles = async (req, res) => {
         }
 
         // Fetch from both collections
+        //Vehicle collection එකෙන් data ගන්නවා.
         const usedQuery = Vehicle.find({ ...filter, ...(condition ? { condition } : {}) })
             .populate('listedBy', 'username email')
             .sort({ createdAt: -1 });
-        
+
+        //Data is taken from the brand new vehicle collection.
         const newQuery = NewVehicle.find({ ...filter }).sort({ createdAt: -1 }).populate('listedBy', 'username email');
 
         let [usedVehicles, newVehicles] = await Promise.all([
@@ -41,6 +43,7 @@ const getVehicles = async (req, res) => {
         ]);
 
         // Transform NewVehicles to match the expected format for listing
+        //new vehicles format කරනවා.Frontend එකට easy identify කරන්න.
         const formattedNewVehicles = newVehicles.map(v => {
             const obj = v.toObject();
             return {
@@ -61,7 +64,7 @@ const getVehicles = async (req, res) => {
             allVehicles = usedVehicles;
         }
 
-        // Sort by creation date
+        // Sort by creation date (Latest vehicles first.)
         allVehicles.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
 
         res.status(200).json({
@@ -125,7 +128,7 @@ const getVehicle = async (req, res) => {
     }
 };
 
-// @desc    Add new vehicle
+// @desc    Add new vehicle (The function to add a used vehicle.)
 // @route   POST /api/vehicles/new
 // @access  Private (Admin/Moderator)
 const addNewVehicle = async (req, res) => {
@@ -214,7 +217,7 @@ const addNewVehicle = async (req, res) => {
             engineCapacity,
             bikeType: bikeType || undefined,
             status: 'available',
-            listedBy: req.user._id,
+            listedBy: req.user._id,  //The logged-in user ID is saved.
             purchaseCost: purchaseCost || 0,
             profitMarginType: profitMarginType || 'percentage',
             profitMarginValue: profitMarginValue || 0,
@@ -535,7 +538,7 @@ const updateVehicle = async (req, res) => {
 
         // Fields that can be updated for Brand New Vehicles
         const newFields = [
-            'brand', 'model', 'year', 'price', 'description', 'color', 
+            'brand', 'model', 'year', 'price', 'description', 'color',
             'fuelType', 'transmission', 'bodyType', 'seatingCapacity',
             'type', 'engineCapacity', 'bikeType', 'status'
         ];
@@ -544,7 +547,7 @@ const updateVehicle = async (req, res) => {
 
         allowedUpdates.forEach(field => {
             if (req.body[field] !== undefined) {
-                // Coerce empty string to undefined for enum fields so they stay unset
+                // Coerce empty string to undefined for enum fields so they stay unset (Empty strings are avoided.)
                 vehicle[field] = req.body[field] === '' ? undefined : req.body[field];
             }
         });
