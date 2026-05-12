@@ -1,3 +1,5 @@
+//Defines how transaction data is saved in MongoDB.
+
 const mongoose = require('mongoose');
 
 const transactionSchema = new mongoose.Schema({

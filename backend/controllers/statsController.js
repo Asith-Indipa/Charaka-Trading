@@ -14,7 +14,7 @@ const getDashboardStats = async (req, res) => {
         ]);
         const purchaseRevenue = purchaseRevenueResult.length > 0 ? purchaseRevenueResult[0].total : 0;
 
-        //Total Profit of all solde vehicle
+        //Total Profit of all solde vehicles
         const totalProfitResult = await Transaction.aggregate([
             { $match: { type: 'sale', status: 'completed' } },
             { $group: { _id: null, total: { $sum: '$calculatedProfit' } } }
@@ -364,7 +364,7 @@ const getDetailedAnalytics = async (req, res) => {
                     purchaseCount: purchaseCountTotal,
                     saleCount: saleCountTotal,
                     avgSalePrice1: saleCountTotal > 0 ? (saleTotal / saleCountTotal).toFixed(2) : 0,
-                    avgSalePrice:avgtmp || 0,
+                    avgSalePrice: avgtmp || 0,
                     avgPurchasePrice: purchaseCountTotal > 0 ? (purchaseTotal / purchaseCountTotal).toFixed(2) : 0,
                     turnoverRate: parseFloat(turnoverRate)
                 },

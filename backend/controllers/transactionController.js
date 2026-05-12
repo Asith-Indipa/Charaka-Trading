@@ -6,9 +6,10 @@ const StoreInfo = require('../models/StoreInfo');
 // @desc    Create new transaction
 // @route   POST /api/transactions
 // @access  Private (Admin/Moderator)
-const createTransaction = async (req, res) => {
+
+const createTransaction = async (req, res) => { //This function runs when a transaction create request comes from the frontend.
     try {
-        const {
+        const { //Frontend form එකෙන් එන data ටික ගන්නවා.
             type = 'sale',
             vehicleId,
             vehicleData,
@@ -23,7 +24,7 @@ const createTransaction = async (req, res) => {
             notes
         } = req.body;
 
-        let vehicle;
+        let vehicle;   //temporary variables.
         let vehicleSnapshot;
 
         if (type === 'purchase') {
@@ -35,7 +36,7 @@ const createTransaction = async (req, res) => {
                 ...vehicleData,
                 status: 'archived', // Initially archived until ready to list
                 listedBy: req.user._id,
-                purchaseCost: salePrice, // CRITICAL: Store what we paid as purchase cost
+                purchaseCost: salePrice, // The actual cost of buying the vehicle.
                 price: vehicleData.price || salePrice, // Selling price (can be same or calculated with margin)
                 // Profit margin fields can be set later when editing vehicle
                 profitMarginType: vehicleData.profitMarginType || 'percentage',
@@ -44,8 +45,9 @@ const createTransaction = async (req, res) => {
             };
 
 
-            vehicle = await Vehicle.create(newVehicleData);
+            vehicle = await Vehicle.create(newVehicleData);    //Saving the vehicle to MongoDB.
 
+            //A copy of the vehicle data is saved at the time of the transaction.
             vehicleSnapshot = {
                 vehicleId: vehicle._id,
                 vehicleNumber: vehicle.vehicleNumber,
@@ -60,9 +62,10 @@ const createTransaction = async (req, res) => {
                 price: vehicle.price,
                 description: vehicle.description,
                 images: vehicle.images,
-                addedVehicleValue:vehicle.originalPrice || 0
+                addedVehicleValue: vehicle.originalPrice || 0
             };
 
+            //Get the store information and save it as the buyer information.
             let storeInfo = await StoreInfo.findOne();
             const storeBuyer = {
                 name: storeInfo?.name || '',
@@ -70,26 +73,29 @@ const createTransaction = async (req, res) => {
                 address: storeInfo?.address || ''
             };
 
+            //Calculate the final amount by subtracting the discount from the sale price.
             const finalAmount = salePrice - (discount || 0);
 
-            const transaction = await Transaction.create({
+            //Create the transaction.
+            const transaction = await Transaction.create({   //The transaction is saved to MongoDB.
                 type: 'purchase',
-                transactionNumber: `PUR-${Date.now()}`,
+                transactionNumber: `PUR-${Date.now()}`,   //A unique transaction number is generated.
                 vehicleSnapshot,
-                buyer: storeBuyer,
-                seller: seller,
+                buyer: storeBuyer,                  //Store information is saved as buyer information.
+                seller: seller,                     //Seller information is saved.
                 salePrice,
-                discount: discount || 0,
-                finalAmount,
-                paymentMethod,
-                paymentStatus: paymentStatus || 'completed',
+                discount: discount || 0,            //Discount amount.
+                finalAmount,                        //Final amount after discount.
+                paymentMethod,                      //Payment method.
+                paymentStatus: paymentStatus || 'completed', //Payment status.
                 paymentDetails,
-                financeDetails, // Add this
+                financeDetails,
                 notes,
-                status: 'completed',
-                createdBy: req.user._id
+                status: 'completed',                //Status of the transaction.
+                createdBy: req.user._id              //User who created the transaction.
             });
 
+            //Sending a response to the frontend.
             return res.status(201).json({
                 success: true,
                 message: 'Purchase recorded and vehicle added to inventory',
@@ -107,6 +113,7 @@ const createTransaction = async (req, res) => {
                 });
             }
 
+            //Take a copy of the data from the vehicle database.
             vehicle = await Vehicle.findById(vehicleId);
 
             if (!vehicle) {
@@ -116,6 +123,7 @@ const createTransaction = async (req, res) => {
                 });
             }
 
+            //If the vehicle is already sold, it will be blocked.
             if (vehicle.status !== 'available') {
                 return res.status(400).json({
                     success: false,
@@ -143,12 +151,15 @@ const createTransaction = async (req, res) => {
                 calculatedProfit: vehicle.calculatedProfit
             };
 
+            //Discount is calculated.
             const finalAmount = salePrice - (discount || 0);
 
+            //Creating a sale transaction.
             const transaction = await Transaction.create({
                 type: 'sale',
                 vehicleSnapshot,
                 buyer,
+                //Shop info is loaded dynamically.
                 seller: await (async () => {
                     const storeInfo = await StoreInfo.findOne();
                     return {
@@ -161,7 +172,7 @@ const createTransaction = async (req, res) => {
                 discount: discount || 0,
                 finalAmount,
                 paymentMethod,
-                paymentStatus: paymentStatus || 'pending',
+                paymentStatus: paymentStatus || 'pending', //default pending.
                 paymentDetails,
                 financeDetails, // Add this
                 notes,
@@ -170,7 +181,7 @@ const createTransaction = async (req, res) => {
                 calculatedProfit: vehicle.calculatedProfit
             });
 
-            // Update vehicle status
+            // Update vehicle status  ( The vehicle is sold from inventory. )
             vehicle.status = 'sold';
             vehicle.soldAt = new Date();
             await vehicle.save();
@@ -194,21 +205,24 @@ const createTransaction = async (req, res) => {
 // @desc    Get all transactions
 // @route   GET /api/transactions
 // @access  Private (Admin/Moderator)
+
+//all transactions fetch කරන API එක.
 const getTransactions = async (req, res) => {
     try {
-        const { status, paymentStatus, startDate, endDate } = req.query;
+        const { status, paymentStatus, startDate, endDate } = req.query;   //frontend filters.
 
         // Build filter
         const filter = {};
-        if (status) filter.status = status;
-        if (paymentStatus) filter.paymentStatus = paymentStatus;
+        if (status) filter.status = status;     //Adding status filter.
+        if (paymentStatus) filter.paymentStatus = paymentStatus;   //Adding payment status filter.
 
-        if (startDate || endDate) {
+        if (startDate || endDate) {   //Adding date filter.
             filter.transactionDate = {};
             if (startDate) filter.transactionDate.$gte = new Date(startDate);
             if (endDate) filter.transactionDate.$lte = new Date(endDate);
         }
 
+        //Filtered transactions are taken.
         const transactions = await Transaction.find(filter)
             .populate('createdBy', 'username email')
             .sort({ transactionDate: -1 });
@@ -233,6 +247,9 @@ const getTransactions = async (req, res) => {
 // @access  Private (Admin/Moderator)
 const getTransaction = async (req, res) => {
     try {
+
+
+        //Gets the id from the URL parameter.
         const transaction = await Transaction.findById(req.params.id)
             .populate('createdBy', 'username email');
 
@@ -271,11 +288,12 @@ const updateTransaction = async (req, res) => {
             });
         }
 
-        // Fields that can be updated
+        //Allowed Fields that can be updated
         const allowedUpdates = [
             'paymentStatus', 'paymentDetails', 'status', 'notes'
         ];
 
+        //Looping fields.
         allowedUpdates.forEach(field => {
             if (req.body[field] !== undefined) {
                 transaction[field] = req.body[field];
