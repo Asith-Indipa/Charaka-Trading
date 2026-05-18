@@ -48,5 +48,3 @@ This project is licensed under the [MIT License](LICENSE).
 Created and maintained by [Asith Indipa](https://github.com/Asith-Indipa).
 
 ---
-
-> _Replace the above sections with specific information about your trading platform as it progresses._
