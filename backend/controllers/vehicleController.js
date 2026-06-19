@@ -191,7 +191,7 @@ const addNewVehicle = async (req, res) => {
         // Handle uploaded images
         let images = [];
         if (req.files && req.files.length > 0) {
-            images = req.files.map(file => `/uploads/vehicles/${file.filename}`);
+            images = req.files.map(file => file.imgbbUrl || `/uploads/vehicles/${file.filename}`);
         }
 
         // Create vehicle
@@ -267,7 +267,7 @@ const addNewBrandVehicle = async (req, res) => {
         // Handle uploaded images
         let images = [];
         if (req.files && req.files.length > 0) {
-            images = req.files.map(file => `/uploads/vehicles/${file.filename}`);
+            images = req.files.map(file => file.imgbbUrl || `/uploads/vehicles/${file.filename}`);
         }
 
         // Create vehicle
@@ -351,7 +351,7 @@ const relistVehicle = async (req, res) => {
         // Handle new uploaded images
         let images = originalVehicle.images || [];
         if (req.files && req.files.length > 0) {
-            const newImages = req.files.map(file => `/uploads/vehicles/${file.filename}`);
+            const newImages = req.files.map(file => file.imgbbUrl || `/uploads/vehicles/${file.filename}`);
             images = [...images, ...newImages];
         }
 
@@ -452,7 +452,7 @@ const addFromTransaction = async (req, res) => {
         // Handle uploaded images
         let images = transaction.vehicleSnapshot.images || [];
         if (req.files && req.files.length > 0) {
-            const newImages = req.files.map(file => `/uploads/vehicles/${file.filename}`);
+            const newImages = req.files.map(file => file.imgbbUrl || `/uploads/vehicles/${file.filename}`);
             images = [...newImages];
         }
 
@@ -565,7 +565,7 @@ const updateVehicle = async (req, res) => {
 
         // Handle new images
         if (req.files && req.files.length > 0) {
-            const newImages = req.files.map(file => `/uploads/vehicles/${file.filename}`);
+            const newImages = req.files.map(file => file.imgbbUrl || `/uploads/vehicles/${file.filename}`);
             vehicle.images = [...vehicle.images, ...newImages];
         }
 
