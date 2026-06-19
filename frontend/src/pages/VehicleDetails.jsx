@@ -124,18 +124,18 @@ export default function VehicleDetails() {   //this is main page component
                         )}
                         {/* discount badge if there is a discount */}
                         {vehicle.discountValue > 0 && (
-                            <Badge className="absolute top-4 right-4 text-lg px-4 py-1 bg-orange-500 hover:bg-orange-600 border-none font-bold text-white shadow-lg">
+                            <Badge className="absolute top-4 right-4 text-lg px-4 py-1 bg-primary hover:bg-primary/90 border-none font-bold text-primary-foreground shadow-lg">
                                 {vehicle.discountType === 'percentage' ? `${vehicle.discountValue}% OFF` : `LKR ${vehicle.discountValue.toLocaleString()} OFF`}
                             </Badge>
                         )}
                         {/* if there is a status booked or available or sold */}
                         {vehicle.status !== 'available' && (
                             <Badge
+                                variant="outline"
                                 className={cn(
                                     "absolute top-4 left-4 text-lg px-3 py-1 capitalize shadow-sm",
-                                    vehicle.status === 'booked' ? "bg-amber-500 hover:bg-amber-600 border-none text-white" : ""
+                                    vehicle.status === 'booked' ? "border-amber-500 text-amber-600 bg-amber-50" : "border-muted-foreground/30 text-muted-foreground bg-muted"
                                 )}
-                                variant={vehicle.status === 'booked' ? 'default' : 'secondary'}
                             >
                                 {vehicle.status}
                             </Badge>
@@ -178,11 +178,11 @@ export default function VehicleDetails() {   //this is main page component
                         <h1 className="text-3xl font-bold tracking-tight">{vehicle.year} {vehicle.brand} {vehicle.model}</h1>
                         {vehicle.status !== 'available' && (
                             <Badge
+                                variant="outline"
                                 className={cn(
-                                    "px-3 py-1 capitalize",
-                                    vehicle.status === 'booked' ? "bg-amber-500 hover:bg-amber-600 border-none text-white font-bold" : ""
+                                    "px-3 py-1 capitalize font-bold",
+                                    vehicle.status === 'booked' ? "border-amber-500 text-amber-600 bg-amber-50" : "border-muted-foreground/30 text-muted-foreground bg-muted"
                                 )}
-                                variant={vehicle.status === 'booked' ? 'default' : 'secondary'}
                             >
                                 {vehicle.status}
                             </Badge>
@@ -194,7 +194,7 @@ export default function VehicleDetails() {   //this is main page component
                             <>
                                 <div className="flex items-center gap-3">
                                     <h2 className="text-4xl font-bold text-primary">LKR {vehicle.discountedPrice.toLocaleString()}</h2>
-                                    <Badge variant="outline" className="bg-orange-500/10 text-orange-500 border-orange-500/20">
+                                    <Badge variant="outline" className="bg-primary/10 text-primary border-primary/20">
                                         {vehicle.discountType === 'percentage' ? `${vehicle.discountValue}% OFF` : 'SPECIAL OFFER'}
                                     </Badge>
                                 </div>

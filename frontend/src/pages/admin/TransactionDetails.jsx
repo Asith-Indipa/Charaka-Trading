@@ -109,7 +109,7 @@ export default function TransactionDetails() {
                         <div className="space-y-1">
                             <div className="flex items-center gap-2">
                                 <CardTitle className="text-2xl">Transaction {transactionNumber}</CardTitle>
-                                <Badge variant={type === 'purchase' ? 'outline' : 'default'} className={type === 'purchase' ? 'border-blue-500 text-blue-500' : ''}>
+                                <Badge variant="outline" className={type === 'purchase' ? 'border-sky-500 text-sky-600 bg-sky-50' : 'border-primary text-primary bg-primary/5'}>
                                     {type?.toUpperCase() || 'SALE'}
                                 </Badge>
                             </div>
@@ -119,14 +119,14 @@ export default function TransactionDetails() {
                             </p>
                         </div>
                         <Badge
-                            className="text-base px-4 py-1"
-                            variant={
+                            className={`text-base px-4 py-1 ${
                                 status === 'completed'
-                                    ? 'default'
+                                    ? 'border-emerald-500 text-emerald-600 bg-emerald-50'
                                     : status === 'pending'
-                                        ? 'secondary'
-                                        : 'destructive'
-                            }
+                                        ? 'border-amber-500 text-amber-600 bg-amber-50'
+                                        : 'border-red-500 text-red-600 bg-red-50'
+                            }`}
+                            variant="outline"
                         >
                             {status.toUpperCase()}
                         </Badge>
@@ -285,24 +285,24 @@ export default function TransactionDetails() {
                                 )}
 
                                 {paymentMethod === 'finance' && financeDetails && (
-                                    <div className="mt-4 p-4 bg-emerald-50/50 rounded-lg space-y-2 border border-emerald-100">
-                                        <p className="text-[10px] font-bold uppercase text-emerald-700">Finance Details</p>
+                                    <div className="mt-4 p-4 bg-sky-50/50 rounded-lg space-y-2 border border-sky-100">
+                                        <p className="text-[10px] font-bold uppercase text-sky-700">Finance Details</p>
                                         <div className="flex justify-between text-sm">
-                                            <span className="text-emerald-800/70">Company</span>
-                                            <span className="font-bold text-emerald-900">{financeDetails.financeName}</span>
+                                            <span className="text-sky-800/70">Company</span>
+                                            <span className="font-bold text-sky-900">{financeDetails.financeName}</span>
                                         </div>
                                         <div className="flex justify-between text-sm">
-                                            <span className="text-emerald-800/70">Vehicle Value</span>
+                                            <span className="text-sky-800/70">Vehicle Value</span>
                                             <span className="font-medium">LKR {financeDetails.vehicleTotalValue?.toLocaleString()}</span>
                                         </div>
                                         <div className="flex justify-between text-sm">
-                                            <span className="text-emerald-800/70">Down Payment</span>
+                                            <span className="text-sky-800/70">Down Payment</span>
                                             <span className="font-medium">LKR {financeDetails.downPayment?.toLocaleString()}</span>
                                         </div>
-                                        <Separator className="bg-emerald-200" />
+                                        <Separator className="bg-sky-200" />
                                         <div className="flex justify-between text-sm">
-                                            <span className="font-bold text-emerald-800">Leasing Value</span>
-                                            <span className="font-bold text-emerald-700">LKR {financeDetails.leasingValue?.toLocaleString()}</span>
+                                            <span className="font-bold text-sky-800">Leasing Value</span>
+                                            <span className="font-bold text-sky-700">LKR {financeDetails.leasingValue?.toLocaleString()}</span>
                                         </div>
                                     </div>
                                 )}
@@ -320,7 +320,7 @@ export default function TransactionDetails() {
                                 <Separator className="my-2 bg-muted-foreground/20" />
                                 <div className="flex justify-between items-center pt-2">
                                     <span className="font-bold text-lg">Net Total</span>
-                                    <span className="font-black text-2xl text-primary font-mono text-emerald-600">LKR {finalAmount.toLocaleString()}</span>
+                                    <span className="font-black text-2xl font-mono text-emerald-600">LKR {finalAmount.toLocaleString()}</span>
                                 </div>
                             </div>
                         </div>

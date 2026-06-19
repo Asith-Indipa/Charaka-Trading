@@ -325,7 +325,7 @@ export default function QuickPublishSheet({ vehicle, isOpen, onOpenChange, onSuc
                             <CardHeader className="flex flex-row items-center justify-between space-y-0">
                                 <CardTitle>{vehicle.condition === 'new' ? 'Sale Pricing' : 'Financial Information'}</CardTitle>
                                 {vehicle.condition === 'new' && (
-                                    <Badge variant="secondary" className="bg-blue-100 text-blue-700 hover:bg-blue-100 border-none">
+                                    <Badge variant="outline" className="border-sky-500 text-sky-600 bg-sky-50">
                                         Simplified Entry
                                     </Badge>
                                 )}
@@ -353,7 +353,7 @@ export default function QuickPublishSheet({ vehicle, isOpen, onOpenChange, onSuc
                                         </div>
                                         <div className="p-4 rounded-lg bg-white border border-blue-100 flex flex-col justify-center">
                                             <label className="text-[10px] uppercase tracking-widest text-muted-foreground font-bold mb-1">Final Inventory Listing</label>
-                                            <p className="text-2xl font-black text-blue-600">
+                                            <p className="text-2xl font-black text-primary">
                                                 LKR {Number(formData.price || 0).toLocaleString()}
                                             </p>
                                         </div>
@@ -461,7 +461,7 @@ export default function QuickPublishSheet({ vehicle, isOpen, onOpenChange, onSuc
                                                     </div>
                                                     <div className="space-y-1">
                                                         <p className="text-muted-foreground text-xs uppercase font-semibold">Final Price</p>
-                                                        <p className="font-bold text-xl text-blue-600">LKR {Number(formData.discountedPrice || formData.price || 0).toLocaleString()}</p>
+                                                        <p className="font-bold text-xl text-primary">LKR {Number(formData.discountedPrice || formData.price || 0).toLocaleString()}</p>
                                                     </div>
                                                     <div className="space-y-1">
                                                         <p className="text-muted-foreground text-xs uppercase font-semibold">Estimated Profit</p>

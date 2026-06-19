@@ -146,8 +146,8 @@ export default function Transactions() {
                                 <TableRow key={t._id}>
                                     <TableCell className="font-medium">{t.transactionNumber}</TableCell>
                                     <TableCell>
-                                        <Badge variant={t.type === 'purchase' ? 'outline' : 'default'}
-                                            className={t.type === 'purchase' ? 'border-blue-500 text-blue-500' : ''}>
+                                        <Badge variant="outline"
+                                            className={t.type === 'purchase' ? 'border-sky-500 text-sky-600 bg-sky-50' : 'border-primary text-primary bg-primary/5'}>
                                             {t.type === 'purchase' ? 'Purchase' : 'Sale'}
                                         </Badge>
                                     </TableCell>
@@ -167,12 +167,13 @@ export default function Transactions() {
                                     <TableCell>LKR {t.finalAmount.toLocaleString()}</TableCell>
                                     <TableCell>
                                         <Badge
-                                            variant={
+                                            variant="outline"
+                                            className={
                                                 t.status === 'completed'
-                                                    ? 'default' // Default is usually black/primary, which implies success/completed
+                                                    ? 'border-emerald-500 text-emerald-600 bg-emerald-50'
                                                     : t.status === 'pending'
-                                                        ? 'secondary' // Grey/Secondary
-                                                        : 'destructive' // Red
+                                                        ? 'border-amber-500 text-amber-600 bg-amber-50'
+                                                        : 'border-red-500 text-red-600 bg-red-50'
                                             }
                                         >
                                             {t.status}

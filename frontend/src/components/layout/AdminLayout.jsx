@@ -7,7 +7,7 @@ import { PERMISSIONS } from '@/utils/roles';
 import { Button } from '@/components/ui/button';
 import {
     LayoutDashboard, TrendingUp, Receipt, Users, UserCog,
-    DollarSign, Store, Shield, ChevronLeft, ChevronRight,
+    DollarSign, Store, Shield, ChevronLeft, ChevronRight, ChevronDown,
     PlusCircle, List, Menu, X, LogOut, Settings, User, Sun, Moon, CalendarCheck
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
@@ -114,6 +114,15 @@ function NavItem({ item, collapsed, onClick }) {
 function Sidebar({ collapsed, setCollapsed, onClose, isMobile }) {
     const { user, logout, can } = useAuth();
     const { isDark, toggle: toggleTheme } = useTheme();  //Manages Dark/Light mode.
+    const [collapsedGroups, setCollapsedGroups] = useState({});
+
+    const toggleGroup = (label) => {
+        setCollapsedGroups(prev => ({
+            ...prev,
+            [label]: !prev[label]
+        }));
+    };
+
     //This function is used to filter the navigation groups based on user permissions.
     const visibleGroups = NAV_GROUPS.map(group => ({
         ...group,
@@ -133,13 +142,13 @@ function Sidebar({ collapsed, setCollapsed, onClose, isMobile }) {
             )}>
                 {!collapsed && (
                     <Link to="/" className="flex items-center gap-2 font-bold text-primary">
-                        <span className="bg-primary text-primary-foreground text-xs font-bold px-1.5 py-0.5 rounded">CT</span>
+                        <img src={isDark ? "/logo-dark.png" : "/logo.png"} alt="Logo" className="h-8 w-auto rounded-md" />
                         <span className="text-sm">Charaka Trading</span>
                     </Link>
                 )}
                 {collapsed && (
-                    <Link to="/" className="bg-primary text-primary-foreground text-xs font-bold px-1.5 py-0.5 rounded">
-                        CT
+                    <Link to="/">
+                        <img src={isDark ? "/logo-dark.png" : "/logo.png"} alt="Logo" className="h-8 w-auto rounded-md" />
                     </Link>
                 )}
                 {isMobile ? (
@@ -165,26 +174,39 @@ function Sidebar({ collapsed, setCollapsed, onClose, isMobile }) {
             )}
 
             {/* Nav Groups */}
-            <nav className="flex-1 overflow-y-auto py-3 px-2 space-y-4">
-                {visibleGroups.map(group => (  //All sidebar groups loop.
-                    <div key={group.label}> {/*If the sidebar is expanded, the group title will be shown.*/}
-                        {!collapsed && (
-                            <p className="text-[10px] uppercase font-semibold tracking-widest text-muted-foreground mb-1.5 px-3">
-                                {group.label}
-                            </p>
-                        )}
-                        <div className="space-y-0.5">
-                            {group.items.map(item => (
-                                <NavItem
-                                    key={item.to}
-                                    item={item}
-                                    collapsed={collapsed}
-                                    onClick={isMobile ? onClose : undefined}
-                                />
-                            ))}
+            <nav className="flex-1 overflow-y-auto no-scrollbar py-3 px-2 space-y-4">
+                {visibleGroups.map(group => {
+                    const isCollapsed = collapsedGroups[group.label];
+                    return (
+                        <div key={group.label} className="space-y-1">
+                            {!collapsed && (
+                                <button
+                                    onClick={() => toggleGroup(group.label)}
+                                    className="w-full flex items-center justify-between text-[10px] uppercase font-semibold tracking-widest text-muted-foreground hover:text-foreground mb-1.5 px-3 py-1 rounded transition-colors text-left"
+                                >
+                                    <span>{group.label}</span>
+                                    {isCollapsed ? (
+                                        <ChevronRight className="h-3 w-3" />
+                                    ) : (
+                                        <ChevronDown className="h-3 w-3" />
+                                    )}
+                                </button>
+                            )}
+                            {(collapsed || !isCollapsed) && (
+                                <div className="space-y-0.5 animate-in fade-in duration-200">
+                                    {group.items.map(item => (
+                                        <NavItem
+                                            key={item.to}
+                                            item={item}
+                                            collapsed={collapsed}
+                                            onClick={isMobile ? onClose : undefined}
+                                        />
+                                    ))}
+                                </div>
+                            )}
                         </div>
-                    </div>
-                ))}
+                    );
+                })}
             </nav>
 
             {/* User footer — just avatar + role + logout */}
@@ -282,7 +304,7 @@ export default function AdminLayout() {
                         <Menu className="h-5 w-5" />
                     </Button>
                     <Link to="/" className="ml-3 font-bold text-primary flex items-center gap-2">
-                        <span className="bg-primary text-primary-foreground text-xs font-bold px-1.5 py-0.5 rounded">CT</span>
+                        {/* <img src={isDark ? "/logo-dark.png" : "/logo.png"} alt="Logo" className="h-7 w-auto rounded-md" /> */}
                         Admin Panel
                     </Link>
                 </div>

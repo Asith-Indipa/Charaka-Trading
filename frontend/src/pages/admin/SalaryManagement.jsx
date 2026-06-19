@@ -460,8 +460,8 @@ export default function SalaryManagement() {
                                     <Badge
                                         variant="outline"
                                         className={record.paymentStatus === 'paid'
-                                            ? 'text-emerald-500 border-emerald-500/20 bg-emerald-500/10'
-                                            : 'text-amber-500 border-amber-500/20 bg-amber-500/10'}
+                                            ? 'text-emerald-600 border-emerald-500 bg-emerald-50'
+                                            : 'text-amber-600 border-amber-500 bg-amber-50'}
                                     >
                                         {record.paymentStatus === 'paid' ? 'Paid' : 'Pending'}
                                     </Badge>

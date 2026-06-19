@@ -32,7 +32,7 @@ export default function Navbar() {
         <header className="border-b bg-background/95 backdrop-blur-sm sticky top-0 z-50 shadow-sm">
             <div className="container mx-auto flex h-16 items-center justify-between px-4">
                 <Link to="/" className="text-xl font-bold tracking-tight text-primary flex items-center gap-2">
-                    <span className="bg-primary text-primary-foreground p-1 rounded">CT</span>
+                    <img src={isDark ? "/logo-dark.png" : "/logo.png"} alt="Logo" className="h-12 w-auto rounded-md" />
                     Charaka Trading
                 </Link>
                 <nav className="flex items-center gap-6 hidden md:flex">

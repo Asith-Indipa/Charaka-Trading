@@ -340,16 +340,20 @@ export default function Users() {
                                 </TableCell>
                                 <TableCell>
                                     <Badge
-                                        variant={user.role === 'admin' ? 'default' : user.role === 'moderator' ? 'secondary' : 'outline'}
-                                        className="capitalize"
+                                        variant="outline"
+                                        className={`capitalize ${
+                                            user.role === 'admin' ? 'border-primary text-primary bg-primary/5'
+                                            : user.role === 'moderator' ? 'border-sky-500 text-sky-600 bg-sky-50'
+                                            : ''
+                                        }`}
                                     >
                                         {user.role}
                                     </Badge>
                                 </TableCell>
                                 <TableCell>
                                     <Badge
-                                        variant={user.isActive ? 'outline' : 'destructive'}
-                                        className={user.isActive ? "text-emerald-600 border-emerald-600 bg-emerald-50/50" : ""}
+                                        variant="outline"
+                                        className={user.isActive ? "text-emerald-600 border-emerald-500 bg-emerald-50" : "text-red-600 border-red-500 bg-red-50"}
                                     >
                                         {user.isActive ? 'Active' : 'Inactive'}
                                     </Badge>
