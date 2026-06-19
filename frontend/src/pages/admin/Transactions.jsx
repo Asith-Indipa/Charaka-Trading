@@ -43,6 +43,7 @@ export default function Transactions() {
         },
     });
 
+    //filters transaction based on search, type and status
     const filteredTransactions = transactions?.data?.filter((t) => {
         const matchesSearch = t.transactionNumber.toLowerCase().includes(search.toLowerCase()) ||
             t.buyer.name.toLowerCase().includes(search.toLowerCase());
@@ -53,9 +54,10 @@ export default function Transactions() {
         return matchesSearch && matchesType && matchesStatus;
     });
 
+    //loading state
     if (isLoading) return <PageLoader text="Fetching transaction logs..." />;
     if (error) return <div className="p-8 text-red-500">Error loading transactions</div>;
-
+    //displaying transactions
     return (
         <div className="container mx-auto py-10">
             <div className="flex items-center justify-between mb-8">
@@ -67,6 +69,7 @@ export default function Transactions() {
                 )}
             </div>
 
+            {/* search bar */}
             <div className="flex flex-col md:flex-row gap-4 mb-6">
                 <div className="relative flex-1">
                     <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
@@ -138,12 +141,13 @@ export default function Transactions() {
                                 </TableCell>
                             </TableRow>
                         ) : (
+                            //displaying transaction details
                             filteredTransactions?.map((t) => (
                                 <TableRow key={t._id}>
                                     <TableCell className="font-medium">{t.transactionNumber}</TableCell>
                                     <TableCell>
-                                        <Badge variant={t.type === 'purchase' ? 'outline' : 'default'}
-                                            className={t.type === 'purchase' ? 'border-blue-500 text-blue-500' : ''}>
+                                        <Badge variant="outline"
+                                            className={t.type === 'purchase' ? 'border-sky-500 text-sky-600 bg-sky-50' : 'border-primary text-primary bg-primary/5'}>
                                             {t.type === 'purchase' ? 'Purchase' : 'Sale'}
                                         </Badge>
                                     </TableCell>
@@ -163,12 +167,13 @@ export default function Transactions() {
                                     <TableCell>LKR {t.finalAmount.toLocaleString()}</TableCell>
                                     <TableCell>
                                         <Badge
-                                            variant={
+                                            variant="outline"
+                                            className={
                                                 t.status === 'completed'
-                                                    ? 'default' // Default is usually black/primary, which implies success/completed
+                                                    ? 'border-emerald-500 text-emerald-600 bg-emerald-50'
                                                     : t.status === 'pending'
-                                                        ? 'secondary' // Grey/Secondary
-                                                        : 'destructive' // Red
+                                                        ? 'border-amber-500 text-amber-600 bg-amber-50'
+                                                        : 'border-red-500 text-red-600 bg-red-50'
                                             }
                                         >
                                             {t.status}

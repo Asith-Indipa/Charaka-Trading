@@ -1,5 +1,5 @@
 // this is for error handling
-
+//Used by Axios interceptors to handle and display errors.
 /**
  * Centrally handles API errors and returns a user-friendly message.
  * @param {object} error - The error object from Axios.

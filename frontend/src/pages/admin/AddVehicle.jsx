@@ -24,12 +24,12 @@ import { Separator } from '@/components/ui/separator';
 import VehicleSearchDropdown from '@/components/common/VehicleSearchDropdown';
 
 export default function AddVehicle() {
-    const navigate = useNavigate();
+    const navigate = useNavigate();  //Redirect the user to the vehicles page after adding a vehicle.
     const queryClient = useQueryClient();
     const [images, setImages] = useState([]);
     const [uploading, setUploading] = useState(false);
 
-    // Manual form handling for simplicity with file uploads mixed with data
+    // Manual form handling for simplicity with file uploads mixed with data (The object that stores all the data of the vehicle)
     const [formData, setFormData] = useState({
         brand: '',
         model: '',
@@ -65,7 +65,7 @@ export default function AddVehicle() {
 
 
     const handleInputChange = (e) => {
-        const { name, value } = e.target;
+        const { name, value } = e.target;   //Takes input field name + value
         setFormData(prev => {
             const newData = { ...prev, [name]: value };
 

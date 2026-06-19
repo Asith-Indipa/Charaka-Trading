@@ -161,7 +161,7 @@ export default function Vehicles() {
                 </div>
             </div>
 
-            <Button variant="outline" className="w-full" onClick={resetFilters}>
+            <Button variant="outline" className="w-full transition-all duration-200 hover:bg-muted hover:scale-[1.02] active:scale-[0.98]" onClick={resetFilters}>
                 <X className="mr-2 h-4 w-4" /> Reset Filters
             </Button>
         </div>
@@ -202,7 +202,7 @@ export default function Vehicles() {
                     <div className="md:hidden">
                         <Sheet>
                             <SheetTrigger asChild>
-                                <Button variant="outline" size="icon">
+                                <Button variant="outline" size="icon" className="transition-transform duration-200 hover:scale-105 active:scale-95">
                                     <Filter className="h-4 w-4" />
                                 </Button>
                             </SheetTrigger>
@@ -264,7 +264,7 @@ export default function Vehicles() {
                                         )}
                                         {vehicle.discountType && vehicle.discountType !== 'none' && vehicle.discountValue > 0 && (
                                             <Badge
-                                                className="absolute top-2 right-2 bg-orange-500 hover:bg-orange-600 text-white shadow-sm border-none font-bold"
+                                                className="absolute top-2 right-2 bg-primary hover:bg-primary/90 text-primary-foreground shadow-sm border-none font-bold"
                                             >
                                                 {vehicle.discountType === 'percentage'
                                                     ? `${vehicle.discountValue}% OFF`
@@ -274,11 +274,11 @@ export default function Vehicles() {
                                         )}
                                         {vehicle.status !== 'available' && (
                                             <Badge
+                                                variant="outline"
                                                 className={cn(
                                                     "absolute top-2 left-2 capitalize shadow-sm",
-                                                    vehicle.status === 'booked' ? "bg-amber-500 hover:bg-amber-600 border-none text-white" : ""
+                                                    vehicle.status === 'booked' ? "border-amber-500 text-amber-600 bg-amber-50" : "border-muted-foreground/30 text-muted-foreground bg-muted"
                                                 )}
-                                                variant={vehicle.status === 'booked' ? 'default' : 'secondary'}
                                             >
                                                 {vehicle.status}
                                             </Badge>
@@ -291,7 +291,7 @@ export default function Vehicles() {
                                                     {vehicle.year} {vehicle.brand} {vehicle.model}
                                                 </CardTitle>
                                                 <div className="text-sm text-muted-foreground flex items-center gap-2">
-                                                    <Badge variant="outline" className={`text-xs font-normal ${vehicle.condition === 'new' ? 'bg-blue-400' : 'bg-yellow-400'}`}>
+                                                    <Badge variant="outline" className={`text-xs font-normal ${vehicle.condition === 'new' ? 'border-sky-500 text-sky-600 bg-sky-50' : 'border-amber-500 text-amber-600 bg-amber-50'}`}>
                                                         {vehicle.condition}
                                                     </Badge>
                                                     {vehicle.condition !== 'new' && (
@@ -330,7 +330,7 @@ export default function Vehicles() {
                                         </div>
                                     </CardContent>
                                     <CardFooter className="pt-0 pb-4 px-6">
-                                        <Button className="w-full" asChild>
+                                        <Button className="w-full transition-transform duration-200 hover:scale-[1.02] active:scale-[0.98]" asChild>
                                             <Link to={`/vehicles/${vehicle._id}`}>View Details</Link>
                                         </Button>
                                     </CardFooter>

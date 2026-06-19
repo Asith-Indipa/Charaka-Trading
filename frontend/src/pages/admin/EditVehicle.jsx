@@ -178,7 +178,7 @@ export default function EditVehicle() {
     // and recalculate price, discount, and profit for used vehicles
 
 
-    const handleSelectChange = (name, value) => {
+    const handleSelectChange = (name, value) => { //dropdowns handle
         setFormData(prev => {
             const newData = { ...prev, [name]: value };
 
@@ -235,6 +235,7 @@ export default function EditVehicle() {
         });
     };
 
+    //checkbox handler 
     const handleCheckboxChange = (name, value) => {
         setFormData(prev => {
             const newData = { ...prev, [name]: value };
@@ -560,13 +561,13 @@ export default function EditVehicle() {
                             ) : (
                                 // Shows an info message for brand new vehicles explaining that tracking details are not required and mileage is set to 0 km
 
-                                <div className="p-4 rounded-md bg-blue-50 border border-blue-100 flex items-start gap-3 mt-2 mb-4 animate-in zoom-in-95 duration-500">
-                                    <div className="h-6 w-6 rounded-full bg-blue-100 flex items-center justify-center text-blue-600 flex-shrink-0">
-                                        <span className="text-xs font-bold font-serif italic text-blue-700">i</span>
+                                <div className="p-4 rounded-md bg-sky-50 border border-sky-100 flex items-start gap-3 mt-2 mb-4 animate-in zoom-in-95 duration-500">
+                                    <div className="h-6 w-6 rounded-full bg-sky-100 flex items-center justify-center text-sky-600 flex-shrink-0">
+                                        <span className="text-xs font-bold font-serif italic text-sky-700">i</span>
                                     </div>
                                     <div className="space-y-1">
-                                        <p className="text-xs font-semibold text-blue-800">Brand New Flow Active</p>
-                                        <p className="text-[10px] text-blue-600/80 leading-relaxed">
+                                        <p className="text-xs font-semibold text-sky-800">Brand New Flow Active</p>
+                                        <p className="text-[10px] text-sky-600/80 leading-relaxed">
                                             Tracing numbers (Stock ID, Chassis, Engine) are not required for brand new stock entries.
                                             Mileage is pinned to 0 km.
                                         </p>
@@ -705,11 +706,11 @@ export default function EditVehicle() {
                 </div>
 
                 {/* Financial Information */}
-                <Card className={formData.condition === 'new' ? 'border-blue-100 bg-blue-50/5' : ''}>
+                <Card className={formData.condition === 'new' ? 'border-sky-100 bg-sky-50/5' : ''}>
                     <CardHeader className="flex flex-row items-center justify-between space-y-0">
                         <CardTitle>{formData.condition === 'new' ? 'Sale Pricing' : 'Financial Information'}</CardTitle>
                         {formData.condition === 'new' && (
-                            <Badge variant="secondary" className="bg-blue-100 text-blue-700 hover:bg-blue-100 border-none">
+                            <Badge variant="outline" className="border-sky-500 text-sky-600 bg-sky-50">
                                 Simplified Entry
                             </Badge>
                         )}
@@ -735,9 +736,9 @@ export default function EditVehicle() {
                                         Enter the final retail price for this brand new vehicle.
                                     </p>
                                 </div>
-                                <div className="p-4 rounded-lg bg-white border border-blue-100 flex flex-col justify-center">
+                                <div className="p-4 rounded-lg bg-white border border-sky-100 flex flex-col justify-center">
                                     <label className="text-[10px] uppercase tracking-widest text-muted-foreground font-bold mb-1">Final Inventory Listing</label>
-                                    <p className="text-2xl font-black text-blue-600">
+                                    <p className="text-2xl font-black text-primary">
                                         LKR {Number(formData.price || 0).toLocaleString()}
                                     </p>
                                 </div>
@@ -849,7 +850,7 @@ export default function EditVehicle() {
                                             </div>
                                             <div className="space-y-1">
                                                 <p className="text-muted-foreground text-xs uppercase font-semibold">Final Price</p>
-                                                <p className="font-bold text-xl text-blue-600">LKR {Number(formData.discountedPrice || formData.price || 0).toLocaleString()}</p>
+                                                <p className="font-bold text-xl text-primary">LKR {Number(formData.discountedPrice || formData.price || 0).toLocaleString()}</p>
                                             </div>
                                             <div className="space-y-1">
                                                 <p className="text-muted-foreground text-xs uppercase font-semibold">Estimated Profit</p>

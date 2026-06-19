@@ -47,6 +47,7 @@ export default function VehicleSearchDropdown({
     showTypeSelector = true,
     defaultType = 'car',
 }) {
+    //Selected vehicle info is stored.
     const [vehicleType, setVehicleType] = useState(value.type || defaultType);
     const [brand, setBrand] = useState(value.brand || '');
     const [model, setModel] = useState(value.model || '');
@@ -128,6 +129,7 @@ export default function VehicleSearchDropdown({
             return;
         }
 
+        //If it is a three wheel, the brand is lowercased and then the models are taken from the local JSON file.
         if (vehicleType === 'three-wheel') {
             const key = brand.toLowerCase();
             const threeWheelModels = threeWheelerData.models[key] || [];
@@ -135,16 +137,18 @@ export default function VehicleSearchDropdown({
             return;
         }
 
+        //Converting App vehicle type → API type.
         const nhtsaType = NHTSA_TYPE_MAP[vehicleType];
         if (!nhtsaType) return;
 
         setLoadingModels(true);
 
+        //year-specific models fetch කරනවා.
         const url = year
             ? `${NHTSA_BASE}/GetModelsForMakeYear/make/${encodeURIComponent(brand)}/modelyear/${year}/vehicletype/${nhtsaType}?format=json`
             : `${NHTSA_BASE}/GetModelsForMake/${encodeURIComponent(brand)}?format=json`;
 
-        fetch(url)
+        fetch(url)   //fetching the API call.
             .then(res => res.json())
             .then(data => {
                 const modelNames = data.Results
@@ -158,7 +162,7 @@ export default function VehicleSearchDropdown({
                 console.error('Failed to fetch models:', err);
                 setModels([]);
             })
-            .finally(() => setLoadingModels(false));
+            .finally(() => setLoadingModels(false)); //loadingModels end
     }, [brand, year, vehicleType]);
 
     // Filter makes based on search
@@ -166,7 +170,7 @@ export default function VehicleSearchDropdown({
         m.toLowerCase().includes(brandSearch.toLowerCase())
     );
 
-    // Handle type change
+    // Handle type change (The function that runs if the user changes the vehicle type.)
     const handleTypeChange = (type) => {
         setVehicleType(type);
         setBrand('');
