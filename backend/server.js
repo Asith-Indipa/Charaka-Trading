@@ -28,7 +28,13 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
 // Serve static files (uploaded images)
-app.use('/uploads', express.static('uploads'));
+const isVercel = process.env.VERCEL || process.env.NOW_BUILDER;
+if (isVercel) {
+    app.use('/uploads', express.static('/tmp/uploads'));
+} else {
+    app.use('/uploads', express.static('uploads'));
+}
+
 
 // API Routes
 app.use('/api/auth', authRoutes);
@@ -113,9 +119,12 @@ app.use((req, res) => {
 });
 
 // Start server
-const PORT = process.env.PORT || 5000;
-app.listen(PORT, () => {
-    console.log(`Server running in ${process.env.NODE_ENV || 'development'} mode on port ${PORT}`);
-});
+if (!process.env.VERCEL) {
+    const PORT = process.env.PORT || 5000;
+    app.listen(PORT, () => {
+        console.log(`Server running in ${process.env.NODE_ENV || 'development'} mode on port ${PORT}`);
+    });
+}
 
 module.exports = app;
+
