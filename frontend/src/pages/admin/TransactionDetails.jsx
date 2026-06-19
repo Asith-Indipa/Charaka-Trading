@@ -1,7 +1,7 @@
 // This component displays detailed information about a specific transaction, including buyer/seller details, vehicle snapshot, financial summary, and allows admin to update transaction status or print the details.
 //this page you can see when click Dashboard > View Transactions > Details
 
-
+//react router dom for navigation
 import { useParams, useNavigate } from 'react-router-dom';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import api from '@/api/axios';
@@ -20,18 +20,20 @@ export default function TransactionDetails() {
     const queryClient = useQueryClient();
 
     const { data: transactionResponse, isLoading, error } = useQuery({
-        queryKey: ['transaction', id],
+        queryKey: ['transaction', id],   //react query for fetching transaction details from the backend using id
         queryFn: async () => {
             const res = await api.get(`/transactions/${id}`);
             return res.data;
         },
     });
 
+    //react mutation for updating transaction status
     const updateStatusMutation = useMutation({
         mutationFn: async (newStatus) => {
             const res = await api.patch(`/transactions/${id}`, { status: newStatus });
             return res.data;
         },
+        //when transaction status updated success then this function will be called
         onSuccess: (data) => {
             queryClient.invalidateQueries(['transaction', id]);
             queryClient.invalidateQueries(['transactions']);
@@ -42,9 +44,11 @@ export default function TransactionDetails() {
         }
     });
 
+    // loading state
     if (isLoading) return <PageLoader text="Loading transaction details..." />;
     if (error) return <div className="p-8 text-red-500">Error loading transaction details</div>;
 
+    //destructuring transaction details
     const transaction = transactionResponse.data;
     const {
         type,
@@ -64,7 +68,7 @@ export default function TransactionDetails() {
         financeDetails
     } = transaction;
 
-    const isPending = status === 'pending';
+    const isPending = status === 'pending'; //check if the transaction is pending,so show cancel and complete buttons
 
     return (
         <div className="container mx-auto py-10 px-4 max-w-4xl">
@@ -110,8 +114,8 @@ export default function TransactionDetails() {
                                 </Badge>
                             </div>
                             <p className="text-sm text-muted-foreground">
-                                {new Date(transactionDate).toLocaleDateString(undefined, { dateStyle: 'long' })} at{' '}
-                                {new Date(transactionDate).toLocaleTimeString(undefined, { timeStyle: 'short' })}
+                                {new Date(transactionDate).toLocaleDateString(undefined, { dateStyle: 'long' })} at{' '} {/**transaction date */}
+                                {new Date(transactionDate).toLocaleTimeString(undefined, { timeStyle: 'short' })}        {/** transaction time */}
                             </p>
                         </div>
                         <Badge

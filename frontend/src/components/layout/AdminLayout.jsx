@@ -89,6 +89,7 @@ function NavItem({ item, collapsed, onClick }) {
             : isExactMatch || (isPrefixMatch && !matchesOtherItemExactly);
     }
 
+    //// This component renders a single sidebar navigation item with active state styling, icon, route navigation, hover effects, and collapsed sidebar support.
     return (
         <Link
             to={item.to}
@@ -109,16 +110,17 @@ function NavItem({ item, collapsed, onClick }) {
         </Link>
     );
 }
-
+//This is the admin sidebar UI.
 function Sidebar({ collapsed, setCollapsed, onClose, isMobile }) {
     const { user, logout, can } = useAuth();
-    const { isDark, toggle: toggleTheme } = useTheme();
-
+    const { isDark, toggle: toggleTheme } = useTheme();  //Manages Dark/Light mode.
+    //This function is used to filter the navigation groups based on user permissions.
     const visibleGroups = NAV_GROUPS.map(group => ({
         ...group,
         items: group.items.filter(item => !item.permission || can(item.permission)),
     })).filter(group => group.items.length > 0);
 
+    //This is the admin sidebar UI.
     return (
         <aside className={cn(
             'flex flex-col h-full bg-sidebar border-r border-sidebar-border transition-all duration-300 ease-in-out',
@@ -164,8 +166,8 @@ function Sidebar({ collapsed, setCollapsed, onClose, isMobile }) {
 
             {/* Nav Groups */}
             <nav className="flex-1 overflow-y-auto py-3 px-2 space-y-4">
-                {visibleGroups.map(group => (
-                    <div key={group.label}>
+                {visibleGroups.map(group => (  //All sidebar groups loop.
+                    <div key={group.label}> {/*If the sidebar is expanded, the group title will be shown.*/}
                         {!collapsed && (
                             <p className="text-[10px] uppercase font-semibold tracking-widest text-muted-foreground mb-1.5 px-3">
                                 {group.label}

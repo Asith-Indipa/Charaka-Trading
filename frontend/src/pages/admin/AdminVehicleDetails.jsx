@@ -27,18 +27,17 @@ import {
 } from 'lucide-react';
 import { useState } from 'react';
 import { format } from 'date-fns';
-import { toast } from 'sonner';
-import { useAuth } from '@/context/AuthContext';
-import { PERMISSIONS } from '@/utils/roles';
+import { toast } from 'sonner';    //success/error popup messages
+import { useAuth } from '@/context/AuthContext'; // User Role Access Control
+import { PERMISSIONS } from '@/utils/roles'; //user permissions roles
 
-export default function AdminVehicleDetails() {
-    const { id } = useParams();
-    const navigate = useNavigate();
+export default function AdminVehicleDetails() { //The vehicle is loaded from the backend
+    const { id } = useParams(); //Vehicle ID from the URL
+    const navigate = useNavigate(); 
     const queryClient = useQueryClient();
-    const [selectedImage, setSelectedImage] = useState(0);
-    const { can } = useAuth();
-
-    const { data: response, isLoading, error } = useQuery({
+    const [selectedImage, setSelectedImage] = useState(0); 
+    const { can } = useAuth(); 
+    const { data: response, isLoading, error } = useQuery({ //Fetches vehicle data from backend using the vehicle ID 
         queryKey: ['vehicle', id, 'admin'],
         queryFn: async () => {
             const res = await api.get(`/vehicles/${id}`);
@@ -46,16 +45,16 @@ export default function AdminVehicleDetails() {
         },
     });
 
-    const archiveMutation = useMutation({
+    const archiveMutation = useMutation({ //Archive vehicle
         mutationFn: async () => {
             await api.delete(`/vehicles/${id}`);
         },
-        onSuccess: () => {
+        onSuccess: () => { //After archiving
             queryClient.invalidateQueries(['vehicles']);
             toast.success("Vehicle archived successfully");
             navigate('/admin/vehicles');
         },
-        onError: (error) => {
+        onError: (error) => { //If error
             toast.error(`Error: ${error.message}`);
         }
     });
@@ -74,7 +73,7 @@ export default function AdminVehicleDetails() {
     );
 
     const vehicle = response.data;
-    const images = vehicle.images && vehicle.images.length > 0 ? vehicle.images : [];
+    const images = vehicle.images && vehicle.images.length > 0 ? vehicle.images : [];  //Image Array handling
 
     return (
         <div className="container mx-auto px-4 py-8 max-w-7xl">
@@ -86,19 +85,20 @@ export default function AdminVehicleDetails() {
                     </Button>
                     <div>
                         <div className="flex items-center gap-2">
-                            <h1 className="text-3xl font-bold tracking-tight">{vehicle.year} {vehicle.brand} {vehicle.model}</h1>
-                            <Badge className="capitalize" variant={vehicle.status === 'available' ? 'default' : 'secondary'}>
+                            <h1 className="text-3xl font-bold tracking-tight">{vehicle.year} {vehicle.brand} {vehicle.model}</h1> {/*vehicle name display*/}
+                            <Badge className="capitalize" variant={vehicle.status === 'available' ? 'default' : 'secondary'}> {/*status badge - available, sold, reserved*/}
                                 {vehicle.status}
                             </Badge>
                         </div>
-                        <p className="text-muted-foreground flex items-center gap-2 mt-1">
-                            <span className="font-mono text-xs bg-muted px-2 py-0.5 rounded">ID: {vehicle.vehicleNumber}</span>
+                        <p className="text-muted-foreground flex items-center gap-2 mt-1"> {/*vehicle info display*/}
+                            <span className="font-mono text-xs bg-muted px-2 py-0.5 rounded">ID: {vehicle.vehicleNumber}</span> {/*vehicle number display*/}
                             <span>•</span>
-                            <span className="capitalize">{vehicle.condition}</span>
+                            <span className="capitalize">{vehicle.condition}</span> {/*condition of the vehicle*/}  
                         </p>
                     </div>
                 </div>
 
+                {/*edit and archive buttons*/}
                 <div className="flex items-center gap-2 w-full md:w-auto">
                     {can(PERMISSIONS.VEHICLE_EDIT) && (
                         <Button variant="outline" asChild className="flex-1 md:flex-none gap-2">
@@ -124,6 +124,7 @@ export default function AdminVehicleDetails() {
                 </div>
             </div>
 
+            {/*vehicle image*/}
             <div className="grid lg:grid-cols-12 gap-8">
                 {/* Left Column - Imagery & Description */}
                 <div className="lg:col-span-8 space-y-6">
@@ -163,6 +164,7 @@ export default function AdminVehicleDetails() {
                         )}
                     </Card>
 
+                    {/*description of the vehicle*/}
                     <Card>
                         <CardHeader>
                             <CardTitle className="text-xl flex items-center gap-2">
@@ -177,6 +179,7 @@ export default function AdminVehicleDetails() {
                         </CardContent>
                     </Card>
 
+                    {/* Admin metadata*/}
                     <Card>
                         <CardHeader>
                             <CardTitle className="text-xl flex items-center gap-2">
@@ -306,6 +309,7 @@ export default function AdminVehicleDetails() {
                             <DetailRow label="Model" value={vehicle.model} />
                             <DetailRow label="Vehicle Type" value={vehicle.type?.replace('-', ' ')} className="capitalize font-bold text-primary" />
 
+                            {/*vehicle body style details for car*/}
                             {vehicle.type === 'car' && (
                                 <>
                                     <DetailRow label="Body Style" value={vehicle.bodyType || 'N/A'} />
@@ -313,15 +317,20 @@ export default function AdminVehicleDetails() {
                                 </>
                             )}
 
+                            {/*vehicle engine capacity details for three-wheel and motorbike*/} 
                             {(vehicle.type === 'three-wheel' || vehicle.type === 'motorbike') && (
                                 <DetailRow label="Engine Capacity" value={vehicle.engineCapacity || 'N/A'} />
                             )}
 
+                            {/*vehicle bike type details for motorbike*/} 
                             {vehicle.type === 'motorbike' && (
                                 <DetailRow label="Bike Type" value={vehicle.bikeType || 'N/A'} />
                             )}
 
+                            {/*vehicle exterior color details for all vehicles*/} 
                             <DetailRow label="Exterior Color" value={vehicle.color || 'N/A'} />
+                            
+                            {/*vehicle condition details for all vehicles*/} 
                             <DetailRow label="Condition" value={vehicle.condition} />
                         </CardContent>
                     </Card>
@@ -343,6 +352,7 @@ export default function AdminVehicleDetails() {
     );
 }
 
+//component for vehicle specs
 function SpecItem({ icon, label, value }) {
     return (
         <div className="flex flex-col gap-1 p-2 rounded-md bg-muted/50">
@@ -355,6 +365,7 @@ function SpecItem({ icon, label, value }) {
     );
 }
 
+//component for vehicle details
 function DetailRow({ label, value, copyable = false, className = "" }) {
     return (
         <div className="flex justify-between items-center text-sm">

@@ -178,7 +178,7 @@ export default function EditVehicle() {
     // and recalculate price, discount, and profit for used vehicles
 
 
-    const handleSelectChange = (name, value) => {
+    const handleSelectChange = (name, value) => { //dropdowns handle
         setFormData(prev => {
             const newData = { ...prev, [name]: value };
 
@@ -235,6 +235,7 @@ export default function EditVehicle() {
         });
     };
 
+    //checkbox handler 
     const handleCheckboxChange = (name, value) => {
         setFormData(prev => {
             const newData = { ...prev, [name]: value };

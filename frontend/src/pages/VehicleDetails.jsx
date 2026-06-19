@@ -30,19 +30,19 @@ import { Textarea } from "@/components/ui/textarea";
 import { Upload, Loader2, CheckCircle2, Landmark, Copy } from 'lucide-react';
 import { useAuth } from '@/context/AuthContext';
 
-export default function VehicleDetails() {
-    const { id } = useParams();
+export default function VehicleDetails() {   //this is main page component
+    const { id } = useParams();  // for get id from url
     const navigate = useNavigate();
     const location = useLocation();
     const [selectedImage, setSelectedImage] = useState(0);
     const [bookingOpen, setBookingOpen] = useState(false);
-    const [bookingSuccess, setBookingSuccess] = useState(false);
+    const [bookingSuccess, setBookingSuccess] = useState(false); //main page component
     const [bookingData, setBookingData] = useState({
         notes: ''
     });
     const [paymentSlip, setPaymentSlip] = useState(null);
     const { isAuthenticated } = useAuth();
-
+    //for get data from api use useQuery  (backend එකෙන් vehicle details ගන්න)
     const { data: response, isLoading, error } = useQuery({
         queryKey: ['vehicle', id],
         queryFn: async () => {
@@ -50,7 +50,7 @@ export default function VehicleDetails() {
             return res.data;
         },
     });
-
+    //get data from api for store table (booking payment bank details are coming from here)
     const { data: storeData } = useQuery({
         queryKey: ['store'],
         queryFn: async () => {
@@ -58,7 +58,7 @@ export default function VehicleDetails() {
             return res.data.data;
         }
     });
-
+    //booking mutation for booking the vehicle (for send booking data to backend)
     const bookMutation = useMutation({
         mutationFn: async () => {
             const formData = new FormData();
@@ -122,11 +122,13 @@ export default function VehicleDetails() {
                                 No Images Available
                             </div>
                         )}
+                        {/* discount badge if there is a discount */}
                         {vehicle.discountValue > 0 && (
                             <Badge className="absolute top-4 right-4 text-lg px-4 py-1 bg-orange-500 hover:bg-orange-600 border-none font-bold text-white shadow-lg">
                                 {vehicle.discountType === 'percentage' ? `${vehicle.discountValue}% OFF` : `LKR ${vehicle.discountValue.toLocaleString()} OFF`}
                             </Badge>
                         )}
+                        {/* if there is a status booked or available or sold */}
                         {vehicle.status !== 'available' && (
                             <Badge
                                 className={cn(
@@ -186,7 +188,7 @@ export default function VehicleDetails() {
                             </Badge>
                         )}
                     </div>
-
+                    {/* if there is a discount */}
                     <div className="flex flex-col gap-1">
                         {vehicle.discountType && vehicle.discountType !== 'none' && vehicle.discountedPrice && vehicle.discountedPrice < vehicle.price ? (
                             <>

@@ -1,4 +1,5 @@
 //this file connect the frontend and backend
+//A helper file is created to manage the backend API calls from the frontend in a standard + secure + reusable manner.
 
 
 import axios from 'axios';
