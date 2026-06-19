@@ -34,8 +34,8 @@ const createBooking = async (req, res) => {
             return res.status(400).json({ message: 'Please upload a payment slip' });
         }
 
-        // Store relative path for static serving
-        const slipUrl = `/uploads/vehicles/${req.file.filename}`;
+        // Store ImgBB URL or relative path for static serving
+        const slipUrl = req.file.imgbbUrl || `/uploads/vehicles/${req.file.filename}`;
 
         const booking = await Booking.create({
             vehicle: vehicleId,
