@@ -39,12 +39,4 @@ cd Charaka-Trading
 Contributions are welcome!  
 Please open an issue or submit a pull request for improvements or bug fixes.
 
-## License
-
-This project is licensed under the [MIT License](LICENSE).
-
-## Contact
-
-Created and maintained by [Asith Indipa](https://github.com/Asith-Indipa).
-
 ---
