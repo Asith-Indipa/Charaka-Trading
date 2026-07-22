@@ -196,6 +196,14 @@ export default function AddTransaction() {
     });
 
     const onSubmit = (data) => {
+        // Year validation for purchase mode
+        if (mode === 'purchase') {
+            const currentYear = new Date().getFullYear();
+            if (parseInt(data.year) > currentYear) {
+                toast.error(`Manufacture Year cannot be greater than the current year (${currentYear}).`);
+                return;
+            }
+        }
         createTransaction.mutate(data);
     };
 
@@ -418,7 +426,6 @@ export default function AddTransaction() {
                                                 <SelectItem value="automatic">Automatic</SelectItem>
                                                 <SelectItem value="manual">Manual</SelectItem>
                                                 <SelectItem value="cvt">CVT</SelectItem>
-                                                <SelectItem value="none">None</SelectItem>
                                             </SelectContent>
                                         </Select>
                                     </div>
@@ -433,7 +440,6 @@ export default function AddTransaction() {
                                                 <SelectItem value="diesel">Diesel</SelectItem>
                                                 <SelectItem value="hybrid">Hybrid</SelectItem>
                                                 <SelectItem value="electric">Electric</SelectItem>
-                                                <SelectItem value="none">None</SelectItem>
                                             </SelectContent>
                                         </Select>
                                     </div>
@@ -454,7 +460,6 @@ export default function AddTransaction() {
                                                     <SelectItem value="suv">SUV</SelectItem>
                                                     <SelectItem value="van">Van</SelectItem>
                                                     <SelectItem value="pickup">Pickup</SelectItem>
-                                                    <SelectItem value="none">None</SelectItem>
                                                 </SelectContent>
                                             </Select>
                                         </div>

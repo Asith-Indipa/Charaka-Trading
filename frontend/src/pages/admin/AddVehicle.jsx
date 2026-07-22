@@ -77,8 +77,12 @@ export default function AddVehicle() {
             // Auto-calculate price and discount if purchase cost, profit margin, or discount changes
             // Only if condition is 'new' or if we want to use the calculator for 'used'
             if (['purchaseCost', 'profitMarginValue', 'discountValue'].includes(name)) {
+                if (name === 'purchaseCost' && value && parseFloat(value) > 0 && (!newData.profitMarginValue || parseFloat(newData.profitMarginValue) === 0)) {
+                    newData.profitMarginValue = '10';
+                }
+
                 const cost = parseFloat(name === 'purchaseCost' ? value : prev.purchaseCost) || 0;
-                const marginValue = parseFloat(name === 'profitMarginValue' ? value : prev.profitMarginValue) || 0;
+                const marginValue = parseFloat(newData.profitMarginValue) || 0;
                 const dValue = parseFloat(name === 'discountValue' ? value : prev.discountValue) || 0;
 
                 let calculatedPrice = 0;
@@ -238,6 +242,13 @@ export default function AddVehicle() {
             return;
         }
 
+        // Year validation
+        const currentYear = new Date().getFullYear();
+        if (parseInt(formData.year) > currentYear) {
+            toast.error(`Manufacture Year cannot be greater than the current year (${currentYear}).`);
+            return;
+        }
+
         createVehicleMutation.mutate();
     };
 
@@ -328,7 +339,7 @@ export default function AddVehicle() {
                                 </div>
                             </div>
 
-                            <div className="space-y-2">
+                             <div className="space-y-2">
                                 <label className="text-sm font-medium leading-none">Status *</label>
                                 <Select value={formData.status} onValueChange={(val) => handleSelectChange('status', val)}>
                                     <SelectTrigger>
@@ -336,8 +347,6 @@ export default function AddVehicle() {
                                     </SelectTrigger>
                                     <SelectContent>
                                         <SelectItem value="available">Available</SelectItem>
-                                        <SelectItem value="booked">Booked</SelectItem>
-                                        <SelectItem value="sold">Sold</SelectItem>
                                         <SelectItem value="archived">Archived</SelectItem>
                                     </SelectContent>
                                 </Select>
@@ -394,7 +403,7 @@ export default function AddVehicle() {
                                 </div>
                             </div>
 
-                            <div className="grid grid-cols-2 gap-4">
+                             <div className="grid grid-cols-2 gap-4">
                                 <div className="space-y-2">
                                     <label className="text-sm font-medium leading-none">Transmission</label>
                                     <Select value={formData.transmission} onValueChange={(val) => handleSelectChange('transmission', val)}>
@@ -405,7 +414,6 @@ export default function AddVehicle() {
                                             <SelectItem value="automatic">Automatic</SelectItem>
                                             <SelectItem value="manual">Manual</SelectItem>
                                             <SelectItem value="cvt">CVT</SelectItem>
-                                            <SelectItem value="none">None</SelectItem>
                                         </SelectContent>
                                     </Select>
                                 </div>
@@ -420,7 +428,6 @@ export default function AddVehicle() {
                                             <SelectItem value="diesel">Diesel</SelectItem>
                                             <SelectItem value="hybrid">Hybrid</SelectItem>
                                             <SelectItem value="electric">Electric</SelectItem>
-                                            <SelectItem value="none">None</SelectItem>
                                         </SelectContent>
                                     </Select>
                                 </div>
@@ -441,7 +448,6 @@ export default function AddVehicle() {
                                                 <SelectItem value="suv">SUV</SelectItem>
                                                 <SelectItem value="van">Van</SelectItem>
                                                 <SelectItem value="pickup">Pickup</SelectItem>
-                                                <SelectItem value="none">None</SelectItem>
                                             </SelectContent>
                                         </Select>
                                     </div>

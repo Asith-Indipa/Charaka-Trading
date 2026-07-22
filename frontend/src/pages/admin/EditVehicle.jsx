@@ -134,8 +134,12 @@ export default function EditVehicle() {
 
             // Auto-calculate price and discount if purchase cost, profit margin, or discount changes
             if (['purchaseCost', 'profitMarginValue', 'discountValue'].includes(name)) {
+                if (name === 'purchaseCost' && value && parseFloat(value) > 0 && (!newData.profitMarginValue || parseFloat(newData.profitMarginValue) === 0)) {
+                    newData.profitMarginValue = '10';
+                }
+
                 const cost = parseFloat(name === 'purchaseCost' ? value : prev.purchaseCost) || 0;    //purchase cost, profit margin, discount value numbers විදිහට convert කරනවා
-                const marginValue = parseFloat(name === 'profitMarginValue' ? value : prev.profitMarginValue) || 0;
+                const marginValue = parseFloat(newData.profitMarginValue) || 0;
                 const dValue = parseFloat(name === 'discountValue' ? value : prev.discountValue) || 0;
 
                 let calculatedPrice = 0;
@@ -283,6 +287,13 @@ export default function EditVehicle() {
                 newErrors[field] = true;
             }
         });
+
+        // Year validation
+        const currentYear = new Date().getFullYear();
+        if (formData.year && parseInt(formData.year) > currentYear) {
+            newErrors['year'] = true;
+            toast.error(`Manufacture Year cannot be greater than the current year (${currentYear}).`);
+        }
 
         setErrors(newErrors);
         return Object.keys(newErrors).length === 0;
@@ -613,7 +624,6 @@ export default function EditVehicle() {
                                             <SelectItem value="manual">Manual</SelectItem>
                                             <SelectItem value="cvt">CVT</SelectItem>
                                             <SelectItem value="semi-automatic">Semi-Automatic</SelectItem>
-                                            <SelectItem value="none">None</SelectItem>
                                         </SelectContent>
                                     </Select>
                                 </div>
@@ -633,7 +643,6 @@ export default function EditVehicle() {
                                             <SelectItem value="hybrid">Hybrid</SelectItem>
                                             <SelectItem value="electric">Electric</SelectItem>
                                             <SelectItem value="cng">CNG</SelectItem>
-                                            <SelectItem value="none">None</SelectItem>
                                         </SelectContent>
                                     </Select>
                                 </div>
@@ -660,7 +669,6 @@ export default function EditVehicle() {
                                                 <SelectItem value="pickup">Pickup</SelectItem>
                                                 <SelectItem value="wagon">Wagon</SelectItem>
                                                 <SelectItem value="coupe">Coupe</SelectItem>
-                                                <SelectItem value="none">None</SelectItem>
                                             </SelectContent>
                                         </Select>
                                     </div>
