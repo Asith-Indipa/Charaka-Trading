@@ -347,7 +347,7 @@ export default function VehicleSearchDropdown({
                         value={year}
                         onChange={(e) => handleYearChange(parseInt(e.target.value) || new Date().getFullYear())}
                         min={1900}
-                        max={new Date().getFullYear() + 1}
+                        max={new Date().getFullYear()}
                     />
                 </div>
             </div>

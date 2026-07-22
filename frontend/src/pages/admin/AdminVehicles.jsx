@@ -156,7 +156,6 @@ export default function AdminVehicles() {
                             <SelectItem value="booked">Booked</SelectItem>
                             <SelectItem value="sold">Sold</SelectItem>
                             <SelectItem value="archived">Archived</SelectItem>
-                            <SelectItem value="relisted">Relisted</SelectItem>
                         </SelectContent>
                     </Select>
                     <Select value={conditionFilter} onValueChange={setConditionFilter}>
